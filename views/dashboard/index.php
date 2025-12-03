@@ -100,7 +100,7 @@
                     
                     <button 
                         id="translateBtn"
-                        onclick="translate()"
+                        onclick="handleTranslate()"
                         class="btn btn-primary"
                     >
                         Echo It
@@ -241,7 +241,7 @@
         }
     }
     
-    async function translate() {
+    async function handleTranslate() {
         const text = document.getElementById('translateInput').value.trim();
         if (!text) {
             showToast('Please enter some text to translate', 'error');

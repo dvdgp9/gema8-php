@@ -147,8 +147,16 @@ PROMPT;
         $parsed = json_decode($result, true);
         
         if (!$parsed || !isset($parsed['title']) || !isset($parsed['phrases'])) {
-            error_log('Gemini whisper parse error: ' . $result);
-            return null;
+            // Intento extra: extraer el primer bloque JSON válido entre llaves
+            if (preg_match('/\{[\s\S]*\}/', $result, $matches)) {
+                $fallbackJson = $matches[0];
+                $parsed = json_decode($fallbackJson, true);
+            }
+
+            if (!$parsed || !isset($parsed['title']) || !isset($parsed['phrases'])) {
+                error_log('Gemini whisper parse error: ' . $result);
+                return null;
+            }
         }
         
         return $parsed;
