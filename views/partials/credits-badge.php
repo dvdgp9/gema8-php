@@ -3,8 +3,10 @@
  * Credits badge partial
  */
 ?>
-<div class="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm">
-    <i data-lucide="coins" class="h-4 w-4 mr-1 text-amber-500"></i>
-    <span id="creditsCount" class="font-medium"><?= $profile['credits'] ?? 0 ?></span>
-    <span class="text-gray-500 ml-1">cr</span>
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/80 backdrop-blur rounded-full text-sm shadow-sm">
+    <div class="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+        <i data-lucide="zap" class="h-3 w-3 text-white"></i>
+    </div>
+    <span id="creditsCount" class="font-bold text-slate-700"><?= $profile['credits'] ?? 0 ?></span>
+    <span class="text-slate-400 text-xs font-medium">credits</span>
 </div>

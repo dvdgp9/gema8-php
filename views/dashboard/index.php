@@ -3,180 +3,215 @@
  * Main Dashboard View
  */
 ?>
-<main class="flex min-h-screen flex-col items-center p-4 sm:p-8 md:p-12 lg:p-16">
+<main class="flex min-h-screen flex-col items-center p-4 sm:p-6 lg:p-8">
     <div class="w-full max-w-6xl">
         <?php require ROOT_PATH . '/views/partials/header.php'; ?>
         
         <!-- Hero -->
-        <div class="flex justify-center w-full flex-col items-center mt-5">
-            <h1 class="text-4xl sm:text-5xl font-bold text-center mb-2 mt-5 gradient-text">
+        <div class="flex justify-center w-full flex-col items-center mt-4 mb-8 stagger-children">
+            <div class="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/20 mb-4 hover:scale-105 transition-transform">
+                <span class="text-3xl font-bold text-white">∞</span>
+            </div>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-center gradient-text">
                 Gema∞
             </h1>
-            <p class="text-sm text-gray-600 mb-8">Where words shift dimensions and return brighter.</p>
+            <p class="text-slate-500 mt-2">Where words shift dimensions and return brighter</p>
         </div>
         
         <!-- Daily Tip -->
-        <div id="dailyTipSection" class="card mb-8 border-l-4 border-l-amber-400">
-            <div class="flex items-start space-x-3">
-                <div class="flex-shrink-0">
-                    <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                        <i data-lucide="lightbulb" class="h-5 w-5 text-amber-600"></i>
+        <div id="dailyTipSection" class="card mb-8 !p-0 overflow-hidden">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                        <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
                     </div>
+                    <h3 class="font-bold text-white text-lg">Daily Tip</h3>
                 </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="font-semibold text-gray-900">Daily Tip</h3>
-                        <?php require ROOT_PATH . '/views/partials/credits-badge.php'; ?>
+                <?php require ROOT_PATH . '/views/partials/credits-badge.php'; ?>
+            </div>
+            <div class="p-5">
+                <div id="dailyTipContent">
+                    <?php if ($todaysTip): ?>
+                    <p class="text-slate-700 leading-relaxed"><?= e($todaysTip) ?></p>
+                    <?php else: ?>
+                    <div class="flex items-center gap-3 text-slate-400">
+                        <span class="spinner"></span>
+                        <span>Loading your daily tip...</span>
                     </div>
-                    <div id="dailyTipContent">
-                        <?php if ($todaysTip): ?>
-                        <p class="text-gray-700"><?= e($todaysTip) ?></p>
-                        <?php else: ?>
-                        <p class="text-gray-500 italic">Loading your daily tip...</p>
-                        <?php endif; ?>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
         
         <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Translator Card -->
-            <div class="card" id="translatorCard">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="mr-2" id="translatorEmoji">🇬🇧</span>
-                        Translator
-                    </h3>
-                    
-                    <div class="flex items-center space-x-2">
+            <div class="card !p-0 overflow-hidden" id="translatorCard">
+                <div class="bg-gradient-to-r from-primary-500 to-primary-600 p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center" id="translatorIcon">
+                                <i data-lucide="languages" class="h-5 w-5 text-white"></i>
+                            </div>
+                            <h3 class="font-bold text-white text-lg">Translator</h3>
+                        </div>
+                        
                         <!-- Direction Toggle -->
-                        <div class="flex bg-gray-100 rounded-lg p-1">
+                        <div class="flex bg-white/20 backdrop-blur rounded-lg p-1">
                             <button 
                                 id="dirToTarget" 
                                 onclick="setDirection('to-target')"
-                                class="px-3 py-1 text-xs rounded-md bg-white shadow-sm font-medium"
+                                class="px-3 py-1.5 text-xs rounded-md bg-white text-primary-600 font-semibold transition-all"
                             >
-                                Eng → <span id="targetLangShort"><?= e(substr(getLanguageName($currentLanguage), 0, 3)) ?></span>
+                                EN → <span id="targetLangShort"><?= e(substr(getLanguageName($currentLanguage), 0, 3)) ?></span>
                             </button>
                             <button 
                                 id="dirFromTarget" 
                                 onclick="setDirection('from-target')"
-                                class="px-3 py-1 text-xs rounded-md text-gray-600"
+                                class="px-3 py-1.5 text-xs rounded-md text-white/80 font-medium transition-all hover:text-white"
                             >
-                                <span id="sourceLangShort"><?= e(substr(getLanguageName($currentLanguage), 0, 3)) ?></span> → Eng
+                                <span id="sourceLangShort"><?= e(substr(getLanguageName($currentLanguage), 0, 3)) ?></span> → EN
                             </button>
                         </div>
                     </div>
                 </div>
                 
-                <textarea 
-                    id="translateInput" 
-                    class="input min-h-24 resize-none mb-4" 
-                    placeholder="Type or paste text ready to ripple…"
-                ></textarea>
-                
-                <div id="translationResult" class="hidden mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm font-medium text-gray-700">Translation:</p>
-                        <span id="ephemeralBadge" class="hidden px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded-full">
-                            <i data-lucide="eye-off" class="h-3 w-3 inline mr-1"></i>
-                            Ephemeral
-                        </span>
-                    </div>
-                    <p id="translatedText" class="text-gray-900 whitespace-pre-wrap"></p>
-                    <p id="seenCount" class="mt-2 text-xs text-gray-500 hidden"></p>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <button 
-                        id="ephemeralToggle"
-                        onclick="toggleEphemeral()"
-                        class="btn btn-ghost text-xs text-gray-500"
-                    >
-                        <i data-lucide="eye-off" class="h-3 w-3 mr-1"></i>
-                        Ephemeral
-                    </button>
+                <div class="p-5">
+                    <textarea 
+                        id="translateInput" 
+                        class="input min-h-28 resize-none mb-4" 
+                        placeholder="Type or paste text ready to ripple…"
+                    ></textarea>
                     
-                    <button 
-                        id="translateBtn"
-                        onclick="handleTranslate()"
-                        class="btn btn-primary"
-                    >
-                        Echo It
-                    </button>
+                    <div id="translationResult" class="hidden mb-4 p-4 bg-gradient-to-br from-primary-50 to-slate-50 rounded-xl border border-primary-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-sm font-semibold text-primary-700 flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                Translation
+                            </p>
+                            <span id="ephemeralBadge" class="hidden badge badge-accent">
+                                <i data-lucide="eye-off" class="h-3 w-3"></i>
+                                Ephemeral
+                            </span>
+                        </div>
+                        <p id="translatedText" class="text-slate-800 whitespace-pre-wrap text-lg"></p>
+                        <p id="seenCount" class="mt-3 text-xs text-slate-500 hidden"></p>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <button 
+                            id="ephemeralToggle"
+                            onclick="toggleEphemeral()"
+                            class="btn btn-ghost text-xs"
+                        >
+                            <i data-lucide="eye-off" class="h-4 w-4 mr-1.5"></i>
+                            Ephemeral
+                        </button>
+                        
+                        <button 
+                            id="translateBtn"
+                            onclick="handleTranslate()"
+                            class="btn btn-primary"
+                        >
+                            <i data-lucide="zap" class="h-4 w-4 mr-2"></i>
+                            Echo It
+                        </button>
+                    </div>
                 </div>
             </div>
             
             <!-- Language Doubts Card -->
-            <div class="card">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="mr-2">❓</span>
-                        Language Doubts
-                    </h3>
+            <div class="card !p-0 overflow-hidden">
+                <div class="bg-gradient-to-r from-violet-500 to-purple-600 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                            <i data-lucide="help-circle" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <h3 class="font-bold text-white text-lg">Language Doubts</h3>
+                    </div>
                 </div>
                 
-                <textarea 
-                    id="questionInput" 
-                    class="input min-h-24 resize-none mb-4" 
-                    placeholder="Ask anything about <?= e(getLanguageName($currentLanguage)) ?>..."
-                ></textarea>
-                
-                <div id="answerResult" class="hidden mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p class="text-sm font-medium text-blue-700 mb-2">Answer:</p>
-                    <div id="answerText" class="text-gray-900 prose prose-sm max-w-none"></div>
-                </div>
-                
-                <div class="flex justify-end">
-                    <button 
-                        id="askBtn"
-                        onclick="askQuestion()"
-                        class="btn btn-primary"
-                    >
-                        <i data-lucide="send" class="h-4 w-4 mr-2"></i>
-                        Ask
-                    </button>
+                <div class="p-5">
+                    <textarea 
+                        id="questionInput" 
+                        class="input min-h-28 resize-none mb-4" 
+                        placeholder="Ask anything about <?= e(getLanguageName($currentLanguage)) ?>..."
+                    ></textarea>
+                    
+                    <div id="answerResult" class="hidden mb-4 p-4 bg-gradient-to-br from-violet-50 to-slate-50 rounded-xl border border-violet-100">
+                        <p class="text-sm font-semibold text-violet-700 mb-3 flex items-center gap-2">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                            Answer
+                        </p>
+                        <div id="answerText" class="text-slate-700 leading-relaxed prose prose-sm max-w-none"></div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button 
+                            id="askBtn"
+                            onclick="askQuestion()"
+                            class="btn btn-primary"
+                            style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.35);"
+                        >
+                            <i data-lucide="send" class="h-4 w-4 mr-2"></i>
+                            Ask
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Whisperer Section -->
-        <div class="card mt-6 lg:mt-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold flex items-center">
-                    <span class="mr-2">🗣️</span>
-                    Whisperer
-                </h3>
-                <span class="text-sm text-gray-500">Situational phrases generator</span>
+        <div class="card !p-0 overflow-hidden mt-6">
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-500 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                            <i data-lucide="mic" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-lg">Whisperer</h3>
+                            <p class="text-white/70 text-sm">Situational phrases generator</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="flex flex-col sm:flex-row gap-4">
-                <input 
-                    type="text" 
-                    id="situationInput" 
-                    class="input flex-1" 
-                    placeholder="Describe your situation (e.g., 'ordering coffee at a cafe')"
-                >
-                <button 
-                    id="whisperBtn"
-                    onclick="generateWhisper()"
-                    class="btn btn-primary whitespace-nowrap"
-                >
-                    <i data-lucide="sparkles" class="h-4 w-4 mr-2"></i>
-                    Generate Phrases
-                </button>
-            </div>
-            
-            <div id="whisperResult" class="hidden mt-6">
-                <h4 id="whisperTitle" class="font-semibold text-lg mb-4"></h4>
-                <div id="whisperPhrases" class="space-y-3"></div>
+            <div class="p-5">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input 
+                        type="text" 
+                        id="situationInput" 
+                        class="input flex-1" 
+                        placeholder="Describe your situation (e.g., 'ordering coffee at a cafe')"
+                    >
+                    <button 
+                        id="whisperBtn"
+                        onclick="generateWhisper()"
+                        class="btn btn-primary whitespace-nowrap"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.35);"
+                    >
+                        <i data-lucide="wand-2" class="h-4 w-4 mr-2"></i>
+                        Generate Phrases
+                    </button>
+                </div>
+                
+                <div id="whisperResult" class="hidden mt-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                            <i data-lucide="list-checks" class="w-4 h-4 text-emerald-600"></i>
+                        </div>
+                        <h4 id="whisperTitle" class="font-bold text-lg text-slate-800"></h4>
+                    </div>
+                    <div id="whisperPhrases" class="grid gap-3"></div>
+                </div>
             </div>
         </div>
         
         <!-- Footer -->
-        <footer class="mt-12 sm:mt-16 text-center text-gray-500 text-xs">
-            <p>Let your words echo infinitely | <?= date('Y') ?></p>
+        <footer class="mt-12 text-center">
+            <p class="text-slate-400 text-sm">Let your words echo infinitely ✨</p>
+            <p class="text-slate-300 text-xs mt-1"><?= date('Y') ?> Gema∞</p>
         </footer>
     </div>
 </main>
@@ -208,20 +243,17 @@
         translationDirection = dir;
         const toTarget = document.getElementById('dirToTarget');
         const fromTarget = document.getElementById('dirFromTarget');
-        const emoji = document.getElementById('translatorEmoji');
         
         if (dir === 'to-target') {
-            toTarget.classList.add('bg-white', 'shadow-sm', 'font-medium');
-            toTarget.classList.remove('text-gray-600');
-            fromTarget.classList.remove('bg-white', 'shadow-sm', 'font-medium');
-            fromTarget.classList.add('text-gray-600');
-            emoji.textContent = '🇬🇧';
+            toTarget.classList.add('bg-white', 'text-primary-600', 'font-semibold');
+            toTarget.classList.remove('text-white/80');
+            fromTarget.classList.remove('bg-white', 'text-primary-600', 'font-semibold');
+            fromTarget.classList.add('text-white/80');
         } else {
-            fromTarget.classList.add('bg-white', 'shadow-sm', 'font-medium');
-            fromTarget.classList.remove('text-gray-600');
-            toTarget.classList.remove('bg-white', 'shadow-sm', 'font-medium');
-            toTarget.classList.add('text-gray-600');
-            emoji.textContent = '🌐';
+            fromTarget.classList.add('bg-white', 'text-primary-600', 'font-semibold');
+            fromTarget.classList.remove('text-white/80');
+            toTarget.classList.remove('bg-white', 'text-primary-600', 'font-semibold');
+            toTarget.classList.add('text-white/80');
         }
     }
     
@@ -231,13 +263,11 @@
         const card = document.getElementById('translatorCard');
         
         if (ephemeralMode) {
-            btn.classList.add('bg-orange-100', 'text-orange-700');
-            btn.classList.remove('text-gray-500');
-            card.classList.add('border-orange-200', 'bg-orange-50/50');
+            btn.classList.add('!bg-accent-100', '!text-accent-700');
+            card.style.boxShadow = '0 0 0 2px rgba(249, 115, 22, 0.3)';
         } else {
-            btn.classList.remove('bg-orange-100', 'text-orange-700');
-            btn.classList.add('text-gray-500');
-            card.classList.remove('border-orange-200', 'bg-orange-50/50');
+            btn.classList.remove('!bg-accent-100', '!text-accent-700');
+            card.style.boxShadow = '';
         }
     }
     
