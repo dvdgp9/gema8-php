@@ -108,53 +108,44 @@ class Gemini {
      */
     public static function generateWhisper(string $situation, string $targetLanguage): ?array {
         $prompt = <<<PROMPT
-You are helping someone learn {$targetLanguage}. They are about to encounter this situation: "{$situation}"
+Generate practical phrases for learning {$targetLanguage} in this situation: "{$situation}"
 
-Generate:
-1. A short, descriptive title for this situation (3-5 words)
-2. 10-12 practical phrases they would need in this situation
+IMPORTANT: Respond with ONLY valid JSON, no other text. Use this exact structure:
+{"title":"Short Title Here","phrases":[{"target_sentence":"phrase in {$targetLanguage}","translation":"English meaning","pronunciation":"phonetic guide"}]}
 
-For each phrase, provide:
-- The {$targetLanguage} sentence (keep it simple and practical)
-- English translation
-- Pronunciation guide (phonetic, easy to read)
-
-Format your response as JSON:
-{
-  "title": "Short descriptive title",
-  "phrases": [
-    {
-      "target_sentence": "{$targetLanguage} phrase",
-      "translation": "English translation",
-      "pronunciation": "phonetic guide"
-    }
-  ]
-}
-
-Make the phrases practical, simple, and useful for real communication. Focus on common expressions someone would actually need.
+Generate 8-10 phrases. Keep them simple and practical.
 PROMPT;
 
         $result = self::request($prompt);
         
         if (!$result) {
+            error_log('Gemini whisper: request returned null');
             return null;
         }
         
-        // Clean JSON from markdown code blocks
+        error_log('Gemini whisper raw response: ' . substr($result, 0, 500));
+        
+        // Clean JSON from markdown code blocks and extra whitespace
         $result = preg_replace('/```json\s*|\s*```/', '', $result);
+        $result = preg_replace('/```\s*|\s*```/', '', $result);
         $result = trim($result);
         
+        // Try direct parse first
         $parsed = json_decode($result, true);
         
         if (!$parsed || !isset($parsed['title']) || !isset($parsed['phrases'])) {
-            // Intento extra: extraer el primer bloque JSON válido entre llaves
-            if (preg_match('/\{[\s\S]*\}/', $result, $matches)) {
-                $fallbackJson = $matches[0];
-                $parsed = json_decode($fallbackJson, true);
+            // Fallback: extract JSON object from response
+            if (preg_match('/\{[^{}]*"title"[^{}]*"phrases"[^{}]*\[[\s\S]*\][\s\S]*\}/', $result, $matches)) {
+                $parsed = json_decode($matches[0], true);
+            }
+            
+            // Second fallback: find any JSON object
+            if (!$parsed && preg_match('/\{[\s\S]+\}/', $result, $matches)) {
+                $parsed = json_decode($matches[0], true);
             }
 
             if (!$parsed || !isset($parsed['title']) || !isset($parsed['phrases'])) {
-                error_log('Gemini whisper parse error: ' . $result);
+                error_log('Gemini whisper parse error. Response: ' . $result);
                 return null;
             }
         }
