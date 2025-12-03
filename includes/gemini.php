@@ -8,7 +8,7 @@ if (!defined('GEMA8')) {
 }
 
 class Gemini {
-    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     
     /**
      * Send request to Gemini API
