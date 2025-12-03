@@ -63,7 +63,7 @@ if (defined('DB_HOST') && defined('DB_NAME') && defined('DB_USER') && defined('D
 // 10. Test Gemini API
 echo "\n=== GEMINI API ===\n";
 if (defined('GEMINI_API_KEY') && GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY') {
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' . GEMINI_API_KEY;
+    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=' . GEMINI_API_KEY;
     
     $data = [
         'contents' => [
