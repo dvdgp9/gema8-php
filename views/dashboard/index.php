@@ -25,14 +25,20 @@
                     <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
                         <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
                     </div>
-                    <h3 class="font-bold text-white text-lg">Daily Tip</h3>
+                    <div>
+                        <h3 class="font-bold text-white text-lg">Daily Tip</h3>
+                        <p class="text-xs text-white/80">A small nudge for today's learning</p>
+                    </div>
                 </div>
                 <?php require ROOT_PATH . '/views/partials/credits-badge.php'; ?>
             </div>
             <div class="p-5">
                 <div id="dailyTipContent">
                     <?php if ($todaysTip): ?>
-                    <p class="text-slate-700 leading-relaxed"><?= e($todaysTip) ?></p>
+                    <div class="relative pl-4 border-l-2 border-amber-300 text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                        <span class="absolute -left-4 -top-3 text-4xl text-amber-200 select-none">“</span>
+                        <?= nl2br(e($todaysTip)) ?>
+                    </div>
                     <?php else: ?>
                     <div class="flex items-center gap-3 text-slate-400">
                         <span class="spinner"></span>
@@ -230,8 +236,14 @@
     async function loadDailyTip() {
         try {
             const result = await api('<?= BASE_URL ?>/api/generate-tip', { language: currentLanguage });
-            document.getElementById('dailyTipContent').innerHTML = 
-                `<p class="text-gray-700">${escapeHtml(result.tip)}</p>`;
+            const safeTip = escapeHtml(result.tip || '');
+            const formatted = safeTip.replace(/\n/g, '<br>');
+            document.getElementById('dailyTipContent').innerHTML = `
+                <div class="relative pl-4 border-l-2 border-amber-300 text-sm text-slate-700 leading-relaxed">
+                    <span class="absolute -left-4 -top-3 text-4xl text-amber-200 select-none">“</span>
+                    ${formatted}
+                </div>
+            `;
             updateCredits();
         } catch (error) {
             document.getElementById('dailyTipContent').innerHTML = 
