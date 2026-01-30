@@ -201,13 +201,13 @@ class User {
         $stmt = db()->prepare(
             "SELECT u.id, u.email, u.created_at, p.role, p.credits, p.current_language, p.language_progress
              FROM users u 
-             LEFT JOIN profiles p ON u.id = p.user_id 
+             INNER JOIN profiles p ON u.id = p.user_id 
              WHERE u.id = ?"
         );
         $stmt->execute([$id]);
         $user = $stmt->fetch();
         
-        if ($user && $user['language_progress']) {
+        if ($user && isset($user['language_progress']) && $user['language_progress']) {
             $user['language_progress'] = json_decode($user['language_progress'], true);
         }
         

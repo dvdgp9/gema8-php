@@ -98,6 +98,12 @@ class AdminController extends Controller {
         $success = Profile::setCredits($userId, $credits) && Profile::updateRole($userId, $role);
         
         if ($success) {
+            // If editing current user, refresh session data
+            if ($userId === userId()) {
+                unset($_SESSION['user_data'], $_SESSION['profile_data'], $_SESSION['profile_cached_at']);
+                currentUser();
+                currentProfile();
+            }
             flash('success', 'User updated successfully');
         } else {
             flash('error', 'Failed to update user');
