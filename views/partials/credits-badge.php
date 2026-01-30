@@ -7,6 +7,14 @@
     <div class="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
         <i data-lucide="zap" class="h-3 w-3 text-white"></i>
     </div>
-    <span id="creditsCount" class="font-bold text-slate-700"><?= $profile['credits'] ?? 0 ?></span>
+    <span id="creditsCount" class="font-bold text-slate-700">
+        <?php if (($profile['role'] ?? '') === ROLE_ORACLE): ?>
+            ∞
+        <?php else: ?>
+            <?= $profile['credits'] ?? 0 ?>
+        <?php endif; ?>
+    </span>
+    <?php if (($profile['role'] ?? '') !== ROLE_ORACLE): ?>
     <span class="text-slate-400 text-xs font-medium">credits</span>
+    <?php endif; ?>
 </div>
