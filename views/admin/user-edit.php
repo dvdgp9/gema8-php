@@ -65,13 +65,13 @@
                 <div>
                     <label for="role" class="block text-sm font-medium text-slate-700 mb-2">Role</label>
                     <select name="role" id="role" class="input">
-                        <option value="<?= ROLE_WHISPER ?>" <?= ($user['role'] ?? '') === ROLE_WHISPER ? 'selected' : '' ?>>
+                        <option value="<?= ROLE_WHISPER ?>" <?= (($user['role'] ?? '') === ROLE_WHISPER) ? 'selected' : '' ?>>
                             Whisper (Basic)
                         </option>
-                        <option value="<?= ROLE_VOICE ?>" <?= ($user['role'] ?? '') === ROLE_VOICE ? 'selected' : '' ?>>
+                        <option value="<?= ROLE_VOICE ?>" <?= (($user['role'] ?? '') === ROLE_VOICE) ? 'selected' : '' ?>>
                             Voice (Premium)
                         </option>
-                        <option value="<?= ROLE_ORACLE ?>" <?= ($user['role'] ?? '') === ROLE_ORACLE ? 'selected' : '' ?>>
+                        <option value="<?= ROLE_ORACLE ?>" <?= (($user['role'] ?? '') === ROLE_ORACLE) ? 'selected' : '' ?>>
                             Oracle (Admin)
                         </option>
                     </select>
