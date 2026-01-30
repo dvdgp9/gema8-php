@@ -2,8 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="Where words shift dimensions. Learn languages with AI-powered translations.">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Gema∞">
+    <meta name="application-name" content="Gema∞">
+    <meta name="msapplication-TileColor" content="#6366f1">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="<?= BASE_URL ?>/assets/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= BASE_URL ?>/assets/icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= BASE_URL ?>/assets/icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= BASE_URL ?>/assets/icons/icon-72x72.png">
+    
     <title><?= e($title ?? 'Gema∞') ?></title>
     
     <!-- Tailwind CSS -->
@@ -408,6 +430,15 @@
             }
             
             return result;
+        }
+        
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= BASE_URL ?>/sw.js')
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
         }
         
         // Show toast
