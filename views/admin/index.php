@@ -149,7 +149,13 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex items-center gap-2">
-                                        <span class="text-sm font-medium text-slate-700"><?= number_format($user['credits']) ?></span>
+                                        <span class="text-sm font-medium text-slate-700">
+                                            <?php if ($user['role'] === ROLE_ORACLE): ?>
+                                                ∞
+                                            <?php else: ?>
+                                                <?= number_format($user['credits']) ?>
+                                            <?php endif; ?>
+                                        </span>
                                         <button 
                                             onclick="quickAddCredits(<?= $user['id'] ?>)"
                                             class="p-1 hover:bg-green-100 rounded text-green-600 transition-colors"

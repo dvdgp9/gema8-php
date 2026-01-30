@@ -84,23 +84,33 @@
                 <div>
                     <label for="credits" class="block text-sm font-medium text-slate-700 mb-2">Credits</label>
                     <div class="flex gap-2">
-                        <input 
-                            type="number" 
-                            name="credits" 
-                            id="credits" 
-                            value="<?= $user['credits'] ?? 0 ?>" 
-                            min="0"
-                            class="input flex-1"
-                        >
-                        <button type="button" onclick="document.getElementById('credits').value = parseInt(document.getElementById('credits').value || 0) + 500" class="btn btn-secondary">
+                        <?php if (($user['role'] ?? '') === ROLE_ORACLE): ?>
+                            <input 
+                                type="text" 
+                                value="∞" 
+                                class="input flex-1 bg-slate-50 cursor-not-allowed"
+                                disabled
+                            >
+                            <input type="hidden" name="credits" value="<?= $user['credits'] ?? 0 ?>">
+                        <?php else: ?>
+                            <input 
+                                type="number" 
+                                name="credits" 
+                                id="credits" 
+                                value="<?= $user['credits'] ?? 0 ?>" 
+                                min="0"
+                                class="input flex-1"
+                            >
+                        <?php endif; ?>
+                        <button type="button" onclick="document.getElementById('credits').value = parseInt(document.getElementById('credits').value || 0) + 500" class="btn btn-secondary" <?= ($user['role'] ?? '') === ROLE_ORACLE ? 'disabled' : '' ?>>
                             +500
                         </button>
-                        <button type="button" onclick="document.getElementById('credits').value = parseInt(document.getElementById('credits').value || 0) + 1000" class="btn btn-secondary">
+                        <button type="button" onclick="document.getElementById('credits').value = parseInt(document.getElementById('credits').value || 0) + 1000" class="btn btn-secondary" <?= ($user['role'] ?? '') === ROLE_ORACLE ? 'disabled' : '' ?>>
                             +1000
                         </button>
                     </div>
                     <p class="mt-1 text-xs text-slate-500">
-                        Current balance: <?= number_format($user['credits'] ?? 0) ?> credits
+                        Current balance: <?= ($user['role'] ?? '') === ROLE_ORACLE ? '∞' : number_format($user['credits'] ?? 0) . ' credits' ?>
                     </p>
                 </div>
                 
