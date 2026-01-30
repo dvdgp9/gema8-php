@@ -72,6 +72,11 @@ class AuthController extends Controller {
         login($user['id']);
         clearOldInput();
         
+        // Handle "remember me"
+        if (!empty($_POST['remember'])) {
+            createRememberToken($user['id']);
+        }
+        
         flash('success', 'Welcome back!');
         redirect('/');
     }
@@ -135,6 +140,11 @@ class AuthController extends Controller {
      * Handle logout
      */
     public function logout(): void {
+        // Clear remember token if exists
+        if (isLoggedIn()) {
+            clearAllRememberTokens(userId());
+        }
+        clearRememberToken();
         logout();
         flash('success', 'You have been logged out');
         redirect('/auth');

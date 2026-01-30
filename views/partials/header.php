@@ -59,6 +59,13 @@
             Whispers
         </a>
         
+        <?php if (isOracle()): ?>
+        <a href="<?= BASE_URL ?>/admin" class="hidden md:inline-flex btn btn-secondary !bg-purple-100 !text-purple-700 hover:!bg-purple-200">
+            <i data-lucide="shield" class="h-4 w-4 mr-2"></i>
+            Admin
+        </a>
+        <?php endif; ?>
+        
         <a href="<?= BASE_URL ?>/logout" class="hidden md:inline-flex btn btn-ghost">
             <i data-lucide="log-out" class="h-4 w-4"></i>
         </a>

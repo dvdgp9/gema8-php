@@ -173,3 +173,137 @@ function deductCredits(int $amount = 1): bool {
     
     return $success;
 }
+
+/**
+ * Create a persistent "remember me" token (60 days)
+ */
+function createRememberToken(int $userId): void {
+    $token = bin2hex(random_bytes(32));
+    $tokenHash = hash('sha256', $token);
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+60 days'));
+    
+    // Store hashed token in database
+    $stmt = db()->prepare(
+        "INSERT INTO remember_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)"
+    );
+    $stmt->execute([$userId, $tokenHash, $expiresAt]);
+    
+    // Set cookie with plain token (60 days)
+    $cookieExpiry = time() + (60 * 24 * 60 * 60);
+    setcookie(
+        'remember_token',
+        $userId . ':' . $token,
+        [
+            'expires' => $cookieExpiry,
+            'path' => '/',
+            'secure' => isset($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]
+    );
+}
+
+/**
+ * Check and validate remember token from cookie
+ */
+function checkRememberToken(): bool {
+    if (isLoggedIn()) {
+        return true;
+    }
+    
+    if (!isset($_COOKIE['remember_token'])) {
+        return false;
+    }
+    
+    $parts = explode(':', $_COOKIE['remember_token'], 2);
+    if (count($parts) !== 2) {
+        clearRememberToken();
+        return false;
+    }
+    
+    [$userId, $token] = $parts;
+    $userId = (int) $userId;
+    $tokenHash = hash('sha256', $token);
+    
+    // Find valid token
+    $stmt = db()->prepare(
+        "SELECT id FROM remember_tokens 
+         WHERE user_id = ? AND token_hash = ? AND expires_at > NOW()"
+    );
+    $stmt->execute([$userId, $tokenHash]);
+    $result = $stmt->fetch();
+    
+    if (!$result) {
+        clearRememberToken();
+        return false;
+    }
+    
+    // Verify user still exists
+    $user = User::find($userId);
+    if (!$user) {
+        clearRememberToken();
+        return false;
+    }
+    
+    // Log the user in
+    login($userId);
+    
+    // Rotate the token for security
+    deleteRememberToken($userId, $tokenHash);
+    createRememberToken($userId);
+    
+    return true;
+}
+
+/**
+ * Delete a specific remember token
+ */
+function deleteRememberToken(int $userId, string $tokenHash): void {
+    $stmt = db()->prepare("DELETE FROM remember_tokens WHERE user_id = ? AND token_hash = ?");
+    $stmt->execute([$userId, $tokenHash]);
+}
+
+/**
+ * Clear all remember tokens for a user
+ */
+function clearAllRememberTokens(int $userId): void {
+    $stmt = db()->prepare("DELETE FROM remember_tokens WHERE user_id = ?");
+    $stmt->execute([$userId]);
+}
+
+/**
+ * Clear remember token cookie
+ */
+function clearRememberToken(): void {
+    if (isset($_COOKIE['remember_token'])) {
+        setcookie('remember_token', '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => isset($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    }
+}
+
+/**
+ * Cleanup expired remember tokens (call periodically)
+ */
+function cleanupExpiredTokens(): void {
+    db()->exec("DELETE FROM remember_tokens WHERE expires_at < NOW()");
+}
+
+/**
+ * Require Oracle role (superadmin)
+ */
+function requireOracle(): void {
+    requireAuth();
+    
+    if (!isOracle()) {
+        if (isAjax()) {
+            jsonResponse(['error' => 'Access denied'], 403);
+        }
+        flash('error', 'Access denied. Oracle privileges required.');
+        redirect('/');
+    }
+}

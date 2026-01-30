@@ -153,4 +153,64 @@ class User {
         $stmt->execute([$email]);
         return (bool) $stmt->fetch();
     }
+    
+    /**
+     * Get all users with their profiles (for admin panel)
+     */
+    public static function getAllWithProfiles(int $limit = 50, int $offset = 0, string $search = ''): array {
+        $sql = "SELECT u.id, u.email, u.created_at, p.role, p.credits, p.current_language 
+                FROM users u 
+                LEFT JOIN profiles p ON u.id = p.user_id";
+        
+        $params = [];
+        if (!empty($search)) {
+            $sql .= " WHERE u.email LIKE ?";
+            $params[] = '%' . $search . '%';
+        }
+        
+        $sql .= " ORDER BY u.created_at DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Count total users (for pagination)
+     */
+    public static function count(string $search = ''): int {
+        $sql = "SELECT COUNT(*) FROM users";
+        $params = [];
+        
+        if (!empty($search)) {
+            $sql .= " WHERE email LIKE ?";
+            $params[] = '%' . $search . '%';
+        }
+        
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+    
+    /**
+     * Get user with profile for admin
+     */
+    public static function findWithProfile(int $id): ?array {
+        $stmt = db()->prepare(
+            "SELECT u.id, u.email, u.created_at, p.role, p.credits, p.current_language, p.language_progress
+             FROM users u 
+             LEFT JOIN profiles p ON u.id = p.user_id 
+             WHERE u.id = ?"
+        );
+        $stmt->execute([$id]);
+        $user = $stmt->fetch();
+        
+        if ($user && $user['language_progress']) {
+            $user['language_progress'] = json_decode($user['language_progress'], true);
+        }
+        
+        return $user ?: null;
+    }
 }

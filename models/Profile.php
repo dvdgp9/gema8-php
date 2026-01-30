@@ -157,4 +157,43 @@ class Profile {
         
         return $profile['credits'] >= $amount;
     }
+    
+    /**
+     * Set credits to a specific amount (admin function)
+     */
+    public static function setCredits(int $userId, int $credits): bool {
+        $stmt = db()->prepare(
+            "UPDATE profiles SET credits = ?, updated_at = NOW() WHERE user_id = ?"
+        );
+        return $stmt->execute([$credits, $userId]);
+    }
+    
+    /**
+     * Get statistics for admin dashboard
+     */
+    public static function getStats(): array {
+        $stats = [];
+        
+        // Total users
+        $stmt = db()->query("SELECT COUNT(*) FROM users");
+        $stats['total_users'] = (int) $stmt->fetchColumn();
+        
+        // Users by role
+        $stmt = db()->query("SELECT role, COUNT(*) as count FROM profiles GROUP BY role");
+        $stats['by_role'] = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        // Total credits in circulation
+        $stmt = db()->query("SELECT SUM(credits) FROM profiles");
+        $stats['total_credits'] = (int) $stmt->fetchColumn();
+        
+        // New users today
+        $stmt = db()->query("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()");
+        $stats['new_today'] = (int) $stmt->fetchColumn();
+        
+        // New users this week
+        $stmt = db()->query("SELECT COUNT(*) FROM users WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+        $stats['new_week'] = (int) $stmt->fetchColumn();
+        
+        return $stats;
+    }
 }

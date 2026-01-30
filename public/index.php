@@ -28,6 +28,9 @@ require_once ROOT_PATH . '/models/Tip.php';
 // Initialize session
 Session::start();
 
+// Check remember token for persistent login
+checkRememberToken();
+
 // Get current route
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = str_replace(rtrim(parse_url(BASE_URL, PHP_URL_PATH) ?: '', '/'), '', $uri);
@@ -47,6 +50,8 @@ $routes = [
         '/history' => 'HistoryController@index',
         '/whispers' => 'WhisperController@index',
         '/account' => 'AccountController@index',
+        '/admin' => 'AdminController@index',
+        '/admin/user' => 'AdminController@editUser',
     ],
     'POST' => [
         '/auth/login' => 'AuthController@login',
@@ -63,6 +68,11 @@ $routes = [
         '/api/generate-tip' => 'ApiController@generateTip',
         '/api/delete-translation' => 'ApiController@deleteTranslation',
         '/api/delete-whisper' => 'ApiController@deleteWhisper',
+        
+        // Admin endpoints
+        '/admin/user/update' => 'AdminController@updateUser',
+        '/admin/user/delete' => 'AdminController@deleteUser',
+        '/admin/add-credits' => 'AdminController@addCredits',
     ]
 ];
 
@@ -74,6 +84,7 @@ require_once ROOT_PATH . '/controllers/HistoryController.php';
 require_once ROOT_PATH . '/controllers/WhisperController.php';
 require_once ROOT_PATH . '/controllers/AccountController.php';
 require_once ROOT_PATH . '/controllers/ApiController.php';
+require_once ROOT_PATH . '/controllers/AdminController.php';
 
 // Route the request
 $method = $_SERVER['REQUEST_METHOD'];

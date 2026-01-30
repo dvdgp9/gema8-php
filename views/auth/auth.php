@@ -81,6 +81,19 @@
                         </div>
                     </div>
                     
+                    <div class="flex items-center">
+                        <input 
+                            type="checkbox" 
+                            id="remember" 
+                            name="remember" 
+                            value="1"
+                            class="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
+                        >
+                        <label for="remember" class="ml-2 text-sm text-slate-600">
+                            Remember me for 60 days
+                        </label>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary w-full !py-3.5 text-base font-semibold">
                         <i data-lucide="log-in" class="w-5 h-5 mr-2"></i>
                         Sign In
