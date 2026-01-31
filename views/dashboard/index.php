@@ -250,12 +250,6 @@
 </main>
 
 <script>
-<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/views/dashboard/index.php
-=======
-    // Set BASE_URL for TTS module
-    window.BASE_URL = '<?= BASE_URL ?>';
-    
->>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/views/dashboard/index.php
     // Include TTS module
     const ttsScript = document.createElement('script');
     ttsScript.src = '<?= BASE_URL ?>/js/tts.js';
@@ -353,19 +347,12 @@
             lastTranslatedText = result.translated_text;
             lastTargetLanguage = targetLanguage;
             
-<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/views/dashboard/index.php
             // Show TTS button if browser supports it
             if (window.speechSynthesis) {
                 document.getElementById('ttsTranslateBtn').style.display = 'flex';
                 document.getElementById('ttsRepeatBtn').style.display = 'flex';
                 document.getElementById('ttsSpeed').style.display = 'block';
             }
-=======
-            // Show TTS buttons
-            document.getElementById('ttsTranslateBtn').style.display = 'flex';
-            document.getElementById('ttsRepeatBtn').style.display = 'flex';
-            document.getElementById('ttsSpeed').style.display = 'block';
->>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/views/dashboard/index.php
             
             const seenCountEl = document.getElementById('seenCount');
             const ephemeralBadge = document.getElementById('ephemeralBadge');
