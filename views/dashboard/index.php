@@ -305,7 +305,6 @@
             
             // Add audio button for the translated text
             const translatedTextEl = document.getElementById('translatedText');
-            const targetLanguage = translationDirection === 'to-target' ? currentLanguage : 'english';
             addAudioButton(translatedTextEl.parentElement, result.translated_text, targetLanguage);
             
             const seenCountEl = document.getElementById('seenCount');
