@@ -310,43 +310,47 @@ class ApiController extends Controller {
      * Returns audio/mpeg stream
      */
     public function tts(): void {
-        requireAuth();
-        requireCsrf();
-        
-        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-        
-        $text = trim($input['text'] ?? '');
-        $language = sanitize($input['language'] ?? 'english');
-        
-        if (empty($text)) {
-            $this->json(['error' => 'Text is required'], 400);
+        try {
+            requireAuth();
+            requireCsrf();
+            
+            $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+            
+            $text = trim($input['text'] ?? '');
+            $language = sanitize($input['language'] ?? 'english');
+            
+            if (empty($text)) {
+                $this->json(['error' => 'Text is required'], 400);
+            }
+            
+            if (mb_strlen($text) > 1000) {
+                $this->json(['error' => 'Text too long (max 1000 characters)'], 400);
+            }
+            
+            // Check credits
+            if (!hasCredits(CREDIT_COST_TTS)) {
+                $this->json(['error' => 'Insufficient credits'], 402);
+            }
+            
+            // Generate audio
+            $audio = ElevenLabs::textToSpeech($text, $language);
+            
+            if (!$audio) {
+                $this->json(['error' => 'Failed to generate audio'], 500);
+            }
+            
+            // Deduct credits
+            if (!deductCredits(CREDIT_COST_TTS)) {
+                $this->json(['error' => 'Failed to process credits'], 500);
+            }
+            
+            // Return audio as base64 (for easier JS handling)
+            $this->json([
+                'audio' => base64_encode($audio),
+                'format' => 'audio/mpeg'
+            ]);
+        } catch (Throwable $e) {
+            $this->json(['error' => 'TTS Error: ' . $e->getMessage()], 500);
         }
-        
-        if (mb_strlen($text) > 1000) {
-            $this->json(['error' => 'Text too long (max 1000 characters)'], 400);
-        }
-        
-        // Check credits
-        if (!hasCredits(CREDIT_COST_TTS)) {
-            $this->json(['error' => 'Insufficient credits'], 402);
-        }
-        
-        // Generate audio
-        $audio = ElevenLabs::textToSpeech($text, $language);
-        
-        if (!$audio) {
-            $this->json(['error' => 'Failed to generate audio'], 500);
-        }
-        
-        // Deduct credits
-        if (!deductCredits(CREDIT_COST_TTS)) {
-            $this->json(['error' => 'Failed to process credits'], 500);
-        }
-        
-        // Return audio as base64 (for easier JS handling)
-        $this->json([
-            'audio' => base64_encode($audio),
-            'format' => 'audio/mpeg'
-        ]);
     }
 }

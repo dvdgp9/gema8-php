@@ -11,16 +11,16 @@ El usuario necesita escuchar las traducciones porque con algunos idiomas (japon�
 
 ## High-level Task Breakdown
 - [x] Tarea 1: Añadir API key ElevenLabs en config.php
-- [ ] Tarea 2: Crear includes/elevenlabs.php para llamar a la API
-- [ ] Tarea 3: Añadir endpoint /api/tts en ApiController
-- [ ] Tarea 4: Añadir botones de audio en dashboard (traducciones)
-- [ ] Tarea 5: Añadir botones de audio en whispers (frases)
-- [ ] Tarea 6: Crear módulo JS reutilizable para TTS
+- [x] Tarea 2: Crear includes/elevenlabs.php para llamar a la API
+- [x] Tarea 3: Añadir endpoint /api/tts en ApiController
+- [x] Tarea 4: Añadir botones de audio en dashboard (traducciones)
+- [x] Tarea 5: Añadir botones de audio en whispers (frases)
+- [x] Tarea 6: Crear módulo JS reutilizable para TTS
 
 ## Project Status Board
-- [x] Config: API key añadida
-- [ ] Backend: Endpoint TTS
-- [ ] Frontend: Botones de audio
+- [x] Config: API key añadida + CREDIT_COST_TTS
+- [x] Backend: includes/elevenlabs.php + endpoint /api/tts
+- [x] Frontend: Botones de audio en dashboard y whispers
 - [ ] Testing: Verificar con varios idiomas
 
 ---
