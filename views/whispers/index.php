@@ -96,10 +96,10 @@
                 <div id="phrases-<?= $whisper['id'] ?>" class="hidden border-t border-slate-100">
                     <div class="p-4 grid gap-3">
                         <?php foreach ($whisper['phrases'] as $i => $phrase): ?>
-                        <div class="p-4 bg-gradient-to-br from-emerald-50 to-slate-50 rounded-xl border border-emerald-100 hover:shadow-sm transition-all">
+                        <div class="p-4 bg-gradient-to-br from-emerald-50 to-slate-50 rounded-xl border border-emerald-100 hover:shadow-sm transition-all relative group" data-phrase="<?= e($phrase['target_sentence']) ?>" data-lang="<?= e($whisper['target_language']) ?>">
                             <div class="flex items-start gap-3">
                                 <span class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0"><?= $i + 1 ?></span>
-                                <div class="flex-1">
+                                <div class="flex-1 min-w-0">
                                     <p class="font-semibold text-slate-800 text-lg"><?= e($phrase['target_sentence']) ?></p>
                                     <p class="text-slate-600 mt-1"><?= e($phrase['translation']) ?></p>
                                     <p class="text-sm text-emerald-600 mt-2 flex items-center gap-1">
@@ -107,6 +107,13 @@
                                         <?= e($phrase['pronunciation']) ?>
                                     </p>
                                 </div>
+                                <button 
+                                    onclick="event.stopPropagation(); speakWhisperPhrase(this)"
+                                    class="p-2 rounded-lg bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-300 transition-all flex-shrink-0"
+                                    title="Listen"
+                                >
+                                    <i data-lucide="volume-2" class="h-4 w-4"></i>
+                                </button>
                             </div>
                         </div>
                         <?php endforeach; ?>
@@ -119,6 +126,7 @@
     </div>
 </main>
 
+<script src="<?= BASE_URL ?>/js/tts.js"></script>
 <script>
     function filterByLanguage(language) {
         const url = new URL(window.location);
@@ -151,5 +159,37 @@
         } catch (error) {
             showToast(error.message, 'error');
         }
+    }
+    
+    function speakWhisperPhrase(btn) {
+        const phraseDiv = btn.closest('[data-phrase]');
+        const text = phraseDiv.dataset.phrase;
+        const lang = phraseDiv.dataset.lang;
+        
+        if (!text || !lang) return;
+        
+        const originalHTML = btn.innerHTML;
+        
+        speakText(text, lang, {
+            onStart: () => {
+                btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span>';
+                btn.classList.add('animate-pulse');
+            },
+            onEnd: () => {
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('animate-pulse');
+                lucide.createIcons();
+            },
+            onError: () => {
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('animate-pulse');
+                showToast('Voice playback not available', 'error');
+                lucide.createIcons();
+            }
+        }).catch(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('animate-pulse');
+            lucide.createIcons();
+        });
     }
 </script>
