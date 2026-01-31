@@ -128,6 +128,9 @@
 
 <script src="<?= BASE_URL ?>/js/tts.js"></script>
 <script>
+    // Set BASE_URL for TTS module
+    window.BASE_URL = '<?= BASE_URL ?>';
+    
     function filterByLanguage(language) {
         const url = new URL(window.location);
         if (language) {

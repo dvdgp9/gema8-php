@@ -1,209 +1,142 @@
 /**
- * Text-to-Speech Module using Web Speech API
- * Supports multiple languages with voice selection
+ * Text-to-Speech Module using ElevenLabs API
+ * High-quality voice synthesis for language learning
  */
 
 (function() {
     'use strict';
 
-    // Language code mapping from Gema8 to BCP-47
-    const LANG_MAP = {
-        'french': 'fr-FR',
-        'spanish': 'es-ES',
-        'german': 'de-DE',
-        'italian': 'it-IT',
-        'portuguese': 'pt-PT',
-        'dutch': 'nl-NL',
-        'russian': 'ru-RU',
-        'japanese': 'ja-JP',
-        'chinese': 'zh-CN',
-        'korean': 'ko-KR',
-        'arabic': 'ar-SA',
-        'hindi': 'hi-IN',
-        'turkish': 'tr-TR',
-        'polish': 'pl-PL',
-        'swedish': 'sv-SE',
-        'norwegian': 'nb-NO',
-        'danish': 'da-DK',
-        'finnish': 'fi-FI',
-        'greek': 'el-GR',
-        'czech': 'cs-CZ',
-        'hungarian': 'hu-HU',
-        'romanian': 'ro-RO',
-        'ukrainian': 'uk-UA',
-        'hebrew': 'he-IL',
-        'thai': 'th-TH',
-        'vietnamese': 'vi-VN',
-        'indonesian': 'id-ID',
-        'malay': 'ms-MY',
-        'english': 'en-US'
-    };
-
-    // Fallback mappings for broader language support
-    const LANG_FALLBACK = {
-        'fr': 'fr-FR',
-        'es': 'es-ES',
-        'de': 'de-DE',
-        'it': 'it-IT',
-        'pt': 'pt-PT'
-    };
+    // Current audio element
+    let currentAudio = null;
+    let isLoading = false;
+    let playbackRate = 1.0;
 
     class TTSManager {
         constructor() {
-            this.synth = window.speechSynthesis;
-            this.voices = [];
-            this.currentUtterance = null;
             this.isPlaying = false;
-            this.rate = 1.0;
-            this.pitch = 1.0;
-            
-            this.init();
-        }
-
-        init() {
-            if (!this.isSupported()) {
-                console.warn('Web Speech API not supported in this browser');
-                return;
-            }
-
-            // Load voices (they load asynchronously)
-            this.loadVoices();
-            
-            // Voices may load after initial page load
-            if (this.synth.onvoiceschanged !== undefined) {
-                this.synth.onvoiceschanged = () => this.loadVoices();
-            }
-        }
-
-        isSupported() {
-            return 'speechSynthesis' in window;
-        }
-
-        loadVoices() {
-            this.voices = this.synth.getVoices();
-            console.log(`TTS: Loaded ${this.voices.length} voices`);
+            this.currentText = '';
+            this.currentLanguage = '';
         }
 
         /**
-         * Get the best voice for a given language code
-         * @param {string} langCode - Gema8 language code (e.g., 'french', 'spanish')
-         * @returns {SpeechSynthesisVoice|null}
-         */
-        getBestVoice(langCode) {
-            if (!this.voices.length) {
-                this.loadVoices();
-            }
-
-            const bcp47Code = LANG_MAP[langCode.toLowerCase()] || langCode;
-            const langPrefix = bcp47Code.split('-')[0];
-
-            // Priority 1: Exact match (e.g., fr-FR)
-            let voice = this.voices.find(v => v.lang === bcp47Code);
-            if (voice) return voice;
-
-            // Priority 2: Language prefix match (e.g., fr-*)
-            voice = this.voices.find(v => v.lang.startsWith(langPrefix + '-'));
-            if (voice) return voice;
-
-            // Priority 3: Fallback code
-            const fallbackCode = LANG_FALLBACK[langPrefix];
-            if (fallbackCode) {
-                voice = this.voices.find(v => v.lang.startsWith(fallbackCode.split('-')[0]));
-                if (voice) return voice;
-            }
-
-            // Priority 4: Any voice (better than nothing)
-            return this.voices[0] || null;
-        }
-
-        /**
-         * Speak text in the specified language
+         * Speak text using ElevenLabs API
          * @param {string} text - Text to speak
          * @param {string} langCode - Gema8 language code
-         * @param {Object} options - Optional settings
+         * @param {Object} options - Optional callbacks
          * @returns {Promise}
          */
-        speak(text, langCode, options = {}) {
-            return new Promise((resolve, reject) => {
-                if (!this.isSupported()) {
-                    reject(new Error('Speech synthesis not supported'));
-                    return;
+        async speak(text, langCode, options = {}) {
+            if (!text || text.trim() === '') {
+                if (options.onError) options.onError(new Error('No text to speak'));
+                return Promise.reject(new Error('No text to speak'));
+            }
+
+            // Stop any current playback
+            this.stop();
+
+            if (options.onStart) options.onStart();
+            isLoading = true;
+
+            try {
+                // Call our backend endpoint
+                const response = await fetch(window.BASE_URL + '/api/tts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        text: text.trim(),
+                        language: langCode
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'TTS request failed');
                 }
 
-                if (!text || text.trim() === '') {
-                    reject(new Error('No text to speak'));
-                    return;
+                const data = await response.json();
+
+                if (!data.audio) {
+                    throw new Error('No audio data received');
                 }
 
-                // Cancel any ongoing speech
-                this.stop();
+                // Create audio element from base64
+                const audioSrc = 'data:audio/mp3;base64,' + data.audio;
+                currentAudio = new Audio(audioSrc);
+                currentAudio.playbackRate = playbackRate;
 
-                const utterance = new SpeechSynthesisUtterance(text.trim());
-                const voice = this.getBestVoice(langCode);
+                // Store current state
+                this.currentText = text;
+                this.currentLanguage = langCode;
 
-                if (voice) {
-                    utterance.voice = voice;
-                    utterance.lang = voice.lang;
-                } else {
-                    // Fallback to mapped language code
-                    utterance.lang = LANG_MAP[langCode.toLowerCase()] || 'en-US';
-                }
+                return new Promise((resolve, reject) => {
+                    currentAudio.onplay = () => {
+                        this.isPlaying = true;
+                        if (options.onPlay) options.onPlay();
+                    };
 
-                utterance.rate = options.rate || this.rate;
-                utterance.pitch = options.pitch || this.pitch;
-                utterance.volume = options.volume || 1.0;
+                    currentAudio.onended = () => {
+                        this.isPlaying = false;
+                        isLoading = false;
+                        if (options.onEnd) options.onEnd();
+                        resolve();
+                    };
 
-                utterance.onstart = () => {
-                    this.isPlaying = true;
-                    this.currentUtterance = utterance;
-                    if (options.onStart) options.onStart();
-                };
+                    currentAudio.onerror = (e) => {
+                        this.isPlaying = false;
+                        isLoading = false;
+                        const error = new Error('Audio playback failed');
+                        if (options.onError) options.onError(error);
+                        reject(error);
+                    };
 
-                utterance.onend = () => {
-                    this.isPlaying = false;
-                    this.currentUtterance = null;
-                    if (options.onEnd) options.onEnd();
-                    resolve();
-                };
+                    currentAudio.play().catch(err => {
+                        this.isPlaying = false;
+                        isLoading = false;
+                        if (options.onError) options.onError(err);
+                        reject(err);
+                    });
+                });
 
-                utterance.onerror = (event) => {
-                    this.isPlaying = false;
-                    this.currentUtterance = null;
-                    console.error('TTS Error:', event.error);
-                    if (options.onError) options.onError(event);
-                    reject(new Error(`Speech synthesis error: ${event.error}`));
-                };
-
-                this.synth.speak(utterance);
-            });
+            } catch (error) {
+                isLoading = false;
+                console.error('TTS Error:', error);
+                if (options.onError) options.onError(error);
+                return Promise.reject(error);
+            }
         }
 
         /**
-         * Stop current speech
+         * Stop current playback
          */
         stop() {
-            if (this.synth.speaking) {
-                this.synth.cancel();
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
             }
             this.isPlaying = false;
-            this.currentUtterance = null;
+            isLoading = false;
         }
 
         /**
-         * Pause current speech
+         * Pause current playback
          */
         pause() {
-            if (this.synth.speaking && !this.synth.paused) {
-                this.synth.pause();
+            if (currentAudio && this.isPlaying) {
+                currentAudio.pause();
+                this.isPlaying = false;
             }
         }
 
         /**
-         * Resume paused speech
+         * Resume paused playback
          */
         resume() {
-            if (this.synth.paused) {
-                this.synth.resume();
+            if (currentAudio && !this.isPlaying) {
+                currentAudio.play();
+                this.isPlaying = true;
             }
         }
 
@@ -211,31 +144,34 @@
          * Toggle play/pause
          */
         toggle() {
-            if (this.synth.paused) {
-                this.resume();
-            } else if (this.synth.speaking) {
+            if (this.isPlaying) {
                 this.pause();
+            } else {
+                this.resume();
             }
         }
 
         /**
-         * Set speech rate (0.1 to 10)
-         * @param {number} rate
+         * Set playback rate (speed)
+         * @param {number} rate - 0.5 to 2.0
          */
         setRate(rate) {
-            this.rate = Math.max(0.1, Math.min(10, rate));
+            playbackRate = Math.max(0.5, Math.min(2.0, parseFloat(rate)));
+            if (currentAudio) {
+                currentAudio.playbackRate = playbackRate;
+            }
         }
 
         /**
-         * Get current rate
+         * Get current playback rate
          * @returns {number}
          */
         getRate() {
-            return this.rate;
+            return playbackRate;
         }
 
         /**
-         * Check if currently speaking
+         * Check if currently playing
          * @returns {boolean}
          */
         isSpeaking() {
@@ -243,38 +179,57 @@
         }
 
         /**
-         * Get available voices for a language
-         * @param {string} langCode
-         * @returns {SpeechSynthesisVoice[]}
+         * Check if currently loading
+         * @returns {boolean}
          */
-        getVoicesForLanguage(langCode) {
-            const bcp47Code = LANG_MAP[langCode.toLowerCase()] || langCode;
-            const langPrefix = bcp47Code.split('-')[0];
-            
-            return this.voices.filter(v => 
-                v.lang === bcp47Code || 
-                v.lang.startsWith(langPrefix + '-')
-            );
+        isLoading() {
+            return isLoading;
         }
 
         /**
-         * Show browser warning if not supported
-         * @returns {string|null}
+         * Get last spoken text for repeat
+         * @returns {string}
          */
-        getWarningMessage() {
-            if (!this.isSupported()) {
-                return 'Text-to-speech is not supported in your browser. Please use Chrome, Edge, Safari, or Firefox.';
+        getLastText() {
+            return this.currentText;
+        }
+
+        /**
+         * Get last language used
+         * @returns {string}
+         */
+        getLastLanguage() {
+            return this.currentLanguage;
+        }
+
+        /**
+         * Repeat last spoken text
+         * @param {Object} options - Optional callbacks
+         * @returns {Promise}
+         */
+        async repeat(options = {}) {
+            if (!this.currentText || !this.currentLanguage) {
+                if (options.onError) options.onError(new Error('Nothing to repeat'));
+                return Promise.reject(new Error('Nothing to repeat'));
             }
-            return null;
+            return this.speak(this.currentText, this.currentLanguage, options);
         }
     }
 
     // Create global instance
     window.TTS = new TTSManager();
 
-    // Utility function for quick speech
+    // Legacy compatibility - global speakText function
     window.speakText = function(text, langCode, options) {
         return window.TTS.speak(text, langCode, options);
     };
+
+    // Set BASE_URL if not defined
+    if (!window.BASE_URL) {
+        // Try to detect from current URL
+        const path = window.location.pathname;
+        const baseMatch = path.match(/^(.*?)(?:\/|$)/);
+        window.BASE_URL = baseMatch ? baseMatch[1] || '' : '';
+    }
 
 })();

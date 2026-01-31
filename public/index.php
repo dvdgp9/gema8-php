@@ -68,6 +68,7 @@ $routes = [
         '/api/generate-tip' => 'ApiController@generateTip',
         '/api/delete-translation' => 'ApiController@deleteTranslation',
         '/api/delete-whisper' => 'ApiController@deleteWhisper',
+        '/api/tts' => 'ApiController@textToSpeech',
         
         // Admin endpoints
         '/admin/user/update' => 'AdminController@updateUser',

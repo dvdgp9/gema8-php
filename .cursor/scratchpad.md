@@ -1,3 +1,4 @@
+<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/.cursor/scratchpad.md
 # Gema8 - Funcionalidad de Voz/Pronunciación
 
 ## Background and Motivation
@@ -25,6 +26,81 @@ El usuario está aprendiendo francés, un idioma donde la pronunciación es crí
    - Buena calidad
    - $0.015 por 1K caracteres
    - Requiere API key adicional
+=======
+# Gema8 - TTS de Alta Calidad (Reemplazo Web Speech API)
+
+## Background and Motivation
+La voz nativa del navegador (Web Speech API) no tiene calidad suficiente para aprender francés correctamente. Se necesita TTS de alta fidelidad que reproduzca bien las nasales, liaisons y ritmo del francés.
+
+## Key Challenges and Analysis
+
+### Opciones Evaluadas:
+
+| Opción | Calidad | Costo | Setup | Recomendación |
+|--------|---------|-------|-------|---------------|
+| **ElevenLabs** | ⭐⭐⭐ Excelente | Gratis: 10K chars/mes | API Key | ✅ **Mejor opción** |
+| **OpenAI TTS** | ⭐⭐⭐ Muy buena | $0.015/1K chars | API Key | Buena alternativa |
+| **Google Cloud TTS** | ⭐⭐⭐ Muy buena | ~$4/millón chars | API Key + Billing | Más complejo |
+
+### Decisión Recomendada: **ElevenLabs**
+- **Gratis**: 10,000 caracteres/mes (suficiente para pruebas)
+- **Calidad**: Mejor del mercado para idiomas europeos
+- **Francés**: Voz "Liam" o "Matilda" excelentes para francés
+- **Latencia**: ~1-2 segundos
+- **Setup**: Solo API key, sin billing obligatorio inicial
+
+## Requisitos para Implementar
+
+### Opción A: ElevenLabs (Recomendada)
+1. **API Key gratuita**: Registrarse en elevenlabs.io → API Keys → Create
+2. **Sin costo inicial**: 10K caracteres/mes gratis
+3. **Voces francesas recomendadas**: "Liam", "Matilda", "Jessica"
+
+### Opción B: OpenAI TTS
+1. **API Key de OpenAI**: Requiere saldo ($5 mínimo)
+2. **Modelo**: `tts-1` o `tts-1-hd`
+3. **Voz**: `alloy`, `echo`, `fable` (ninguna específica francesa, pero calidad buena)
+
+### Opción C: Google Cloud TTS (Overkill)
+1. **Cuenta GCP** + proyecto
+2. **Billing** obligatorio
+3. **API Key** separada
+
+## Plan de Implementación ElevenLabs
+
+### Tarea 1: Backend - Endpoint TTS
+- [ ] Crear `POST /api/tts` en `ApiController.php`
+- [ ] Llamada cURL a ElevenLabs API
+- [ ] Devolver audio como base64 o URL
+- [ ] Cachear resultados (misma frase = no recobrar)
+
+### Tarea 2: Frontend - Reemplazar TTS
+- [ ] Modificar `public/js/tts.js` para usar endpoint `/api/tts`
+- [ ] Reproducir audio desde base64/URL
+- [ ] Mantener controles de velocidad (usando playbackRate de Audio)
+
+### Tarea 3: Configuración
+- [ ] Añadir `ELEVENLABS_API_KEY` a `config/config.php`
+- [ ] Documentar cómo obtener API key
+
+## ¿Qué necesito de ti?
+
+Para proceder, elige una opción:
+
+**Opción 1 (Rápida)**: Dame una API key de ElevenLabs y implemento ahora mismo.
+- Ve a https://elevenlabs.io/app/sign-up
+- Settings → API Keys → Create API Key
+- Me pasas la key (es gratis, 10K chars/mes)
+
+**Opción 2**: Usar OpenAI TTS (si ya tienes saldo en OpenAI)
+- Confirmar que tienes API key de OpenAI con saldo
+
+**Opción 3**: Te preparo el código y tú añades tu API key después
+- Implemento todo con placeholder `YOUR_ELEVENLABS_API_KEY`
+- Tú configuras luego
+
+**¿Cuál prefieres?**
+>>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/.cursor/scratchpad.md
 
 ### Decisión:
 Implementar **Web Speech API** como solución MVP. Es:
@@ -93,12 +169,19 @@ Implementar **Web Speech API** como solución MVP. Es:
 
 ## Project Status Board
 <<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/.cursor/scratchpad.md
+<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/.cursor/scratchpad.md
+<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/.cursor/scratchpad.md
+<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/.cursor/scratchpad.md
 - [ ] Tarea 1: Módulo TTS JavaScript
 - [ ] Tarea 2: Integración en Dashboard/Traducciones  
 - [ ] Tarea 3: Integración en Whispers
 - [ ] Tarea 4: Soporte multi-idioma
 - [ ] Tarea 5: Mejoras UX (velocidad, repeticiones)
 =======
+=======
+>>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/.cursor/scratchpad.md
+=======
+>>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/.cursor/scratchpad.md
 - [x] Tarea 1: Módulo TTS JavaScript (`public/js/tts.js`) - Implementado con soporte multi-idioma
 - [x] Tarea 2: Integración en Dashboard/Traducciones - Botón de audio con velocidad ajustable
 - [x] Tarea 3: Integración en Whispers - Botón de audio en frases generadas y guardadas
@@ -106,6 +189,56 @@ Implementar **Web Speech API** como solución MVP. Es:
 - [x] Tarea 5: Mejoras UX - Control de velocidad (0.5x - 1.25x) y botón de repetir
 
 **IMPLEMENTACIÓN COMPLETA** - Listo para pruebas
+<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/.cursor/scratchpad.md
+<<<<<<< /Users/dvdgp/Documents/Codeapps/gema8 PHP/.cursor/scratchpad.md
+>>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/.cursor/scratchpad.md
+=======
+>>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/.cursor/scratchpad.md
+=======
+>>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/.cursor/scratchpad.md
+=======
+- [x] **ElevenLabs TTS Implementado** - 2025-01-31
+
+### Cambios realizados:
+1. **Backend** (`controllers/ApiController.php`):
+   - Nuevo endpoint `POST /api/tts`
+   - Integración con ElevenLabs API usando modelo `eleven_multilingual_v2`
+   - Voz: Adam (multilingüe) - soporta francés, español, alemán, etc.
+   - Devuelve audio como base64
+
+2. **Configuración** (`config/config.php`):
+   - Añadida constante `ELEVENLABS_API_KEY`
+
+3. **Frontend** (`public/js/tts.js`):
+   - Reescrito completamente para usar ElevenLabs vía AJAX
+   - Mantiene compatibilidad con controles de velocidad
+   - Soporte para repetir frases
+
+4. **Vistas**:
+   - `views/dashboard/index.php` - Botones TTS en traducciones
+   - `views/whispers/index.php` - Botones TTS en frases guardadas
+
+### Estado: **LISTO PARA PROBAR**
+
+## Executor's Feedback or Assistance Requests
+**IMPLEMENTACIÓN COMPLETA** - Pendiente verificación del usuario.
+
+### Para probar:
+1. Ve al Dashboard
+2. Traduce algo al **francés**
+3. Click en 🔊 para escuchar con voz ElevenLabs
+4. Prueba velocidad **0.5x** para practicar pronunciación
+5. Ve a Whispers y prueba frases guardadas
+
+### Notas:
+- **Voz usada**: Adam (multilingüe) - ID: `pNInz6obpgDQGcFmaJgB`
+- **Modelo**: `eleven_multilingual_v2` (soporta 28 idiomas)
+- **Costo**: 10K caracteres/mes gratis con tu API key
+- **Latencia**: ~1-2 segundos (generación en servidor)
+
+Si la voz no te convence, podemos probar otras voces de ElevenLabs como:
+- `XB0fDUnXU5powFXDhCwa` - Charlotte (femenina, francés)
+- `Xb7hH8MSUJpSbSDYk0k2` - Alice (femenina, multilingüe)
 >>>>>>> /Users/dvdgp/.windsurf/worktrees/gema8 PHP/gema8 PHP-83dd6207/.cursor/scratchpad.md
 
 ## Executor's Feedback or Assistance Requests
