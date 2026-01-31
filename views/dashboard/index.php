@@ -83,25 +83,25 @@
                         placeholder="Type or paste text ready to ripple…"
                     ></textarea>
                     
-                    <div id="translationResult" class="hidden mb-4 p-4 bg-gradient-to-br from-primary-50 to-slate-50 rounded-xl border border-primary-100 relative group">
+                    <div id="translationResult" class="hidden mb-4 p-4 bg-gradient-to-br from-primary-50 to-slate-50 rounded-xl border border-primary-100">
                         <div class="flex items-center justify-between mb-2">
                             <p class="text-sm font-semibold text-primary-700 flex items-center gap-2">
                                 <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                                 Translation
                             </p>
                             <div class="flex items-center gap-2">
-                                <button 
-                                    id="playTranslationBtn"
-                                    onclick="playAudio(document.getElementById('translatedText').textContent, translationDirection === 'to-target' ? currentLanguage : 'english', this)"
-                                    class="btn-audio"
-                                    title="Listen to translation"
-                                >
-                                    <i data-lucide="volume-2" class="w-5 h-5"></i>
-                                </button>
                                 <span id="ephemeralBadge" class="hidden badge badge-accent">
                                     <i data-lucide="eye-off" class="h-3 w-3"></i>
                                     Ephemeral
                                 </span>
+                                <button 
+                                    id="ttsBtn"
+                                    onclick="playTranslation()"
+                                    class="w-9 h-9 rounded-lg bg-primary-100 hover:bg-primary-200 flex items-center justify-center text-primary-600 transition-all"
+                                    title="Listen to translation"
+                                >
+                                    <i data-lucide="volume-2" class="h-4 w-4"></i>
+                                </button>
                             </div>
                         </div>
                         <p id="translatedText" class="text-slate-800 whitespace-pre-wrap text-lg"></p>
@@ -230,7 +230,24 @@
     // State
     let translationDirection = 'to-target';
     let ephemeralMode = false;
+    let lastTargetLanguage = '<?= e($currentLanguage) ?>';
     const currentLanguage = '<?= e($currentLanguage) ?>';
+    
+    // Play translation audio using ElevenLabs TTS
+    function playTranslation() {
+        const text = document.getElementById('translatedText').textContent;
+        const btn = document.getElementById('ttsBtn');
+        if (text && typeof TTS !== 'undefined') {
+            TTS.play(text, lastTargetLanguage, btn);
+        }
+    }
+    
+    // Play whisper phrase audio
+    function playWhisperPhrase(btn, text) {
+        if (text && typeof TTS !== 'undefined') {
+            TTS.play(text, currentLanguage, btn);
+        }
+    }
     
     // Load daily tip
     document.addEventListener('DOMContentLoaded', () => {
@@ -313,6 +330,9 @@
             document.getElementById('translatedText').textContent = result.translated_text;
             document.getElementById('translationResult').classList.remove('hidden');
             
+            // Update target language for TTS
+            lastTargetLanguage = targetLanguage;
+            
             const seenCountEl = document.getElementById('seenCount');
             const ephemeralBadge = document.getElementById('ephemeralBadge');
             
@@ -390,21 +410,27 @@
             
             const phrasesContainer = document.getElementById('whisperPhrases');
             phrasesContainer.innerHTML = result.phrases.map((phrase, i) => `
-                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-start gap-4">
-                    <div class="flex-1">
-                        <p class="font-medium text-lg">${escapeHtml(phrase.target_sentence)}</p>
-                        <p class="text-gray-600 mt-1">${escapeHtml(phrase.translation)}</p>
-                        <p class="text-sm text-gray-500 mt-1 italic">${escapeHtml(phrase.pronunciation)}</p>
+                <div class="p-4 bg-gradient-to-br from-emerald-50 to-slate-50 rounded-xl border border-emerald-100">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1">
+                            <p class="font-semibold text-lg text-slate-800">${escapeHtml(phrase.target_sentence)}</p>
+                            <p class="text-slate-600 mt-1">${escapeHtml(phrase.translation)}</p>
+                            <p class="text-sm text-emerald-600 mt-2 flex items-center gap-1">
+                                <i data-lucide="volume-2" class="h-3 w-3"></i>
+                                ${escapeHtml(phrase.pronunciation)}
+                            </p>
+                        </div>
+                        <button 
+                            onclick="playWhisperPhrase(this, '${escapeHtml(phrase.target_sentence).replace(/'/g, "\\'")}')"
+                            class="w-9 h-9 rounded-lg bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center text-emerald-600 transition-all flex-shrink-0"
+                            title="Listen"
+                        >
+                            <i data-lucide="volume-2" class="h-4 w-4"></i>
+                        </button>
                     </div>
-                    <button 
-                        onclick="playAudio('${escapeHtml(phrase.target_sentence)}', currentLanguage, this)"
-                        class="btn-audio shrink-0 mt-1"
-                        title="Listen"
-                    >
-                        <i data-lucide="volume-2" class="w-5 h-5"></i>
-                    </button>
                 </div>
             `).join('');
+            lucide.createIcons();
             
             document.getElementById('whisperResult').classList.remove('hidden');
             updateCredits();

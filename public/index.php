@@ -17,6 +17,7 @@ require_once ROOT_PATH . '/includes/security.php';
 require_once ROOT_PATH . '/includes/session.php';
 require_once ROOT_PATH . '/includes/auth.php';
 require_once ROOT_PATH . '/includes/gemini.php';
+require_once ROOT_PATH . '/includes/elevenlabs.php';
 
 // Load models
 require_once ROOT_PATH . '/models/User.php';
@@ -68,6 +69,7 @@ $routes = [
         '/api/generate-tip' => 'ApiController@generateTip',
         '/api/delete-translation' => 'ApiController@deleteTranslation',
         '/api/delete-whisper' => 'ApiController@deleteWhisper',
+        '/api/tts' => 'ApiController@tts',
         
         // Admin endpoints
         '/admin/user/update' => 'AdminController@updateUser',

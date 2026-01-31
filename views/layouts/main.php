@@ -78,7 +78,6 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="<?= BASE_URL ?>/js/audio-player.js"></script>
     
     <style>
         * { font-family: 'Inter', system-ui, sans-serif; }
@@ -288,40 +287,6 @@
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
-
-        /* Audio Player Styles */
-        .btn-audio {
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(99, 102, 241, 0.05);
-            color: #6366f1;
-            border: 1px solid rgba(99, 102, 241, 0.1);
-        }
-
-        .btn-audio:hover {
-            background: rgba(99, 102, 241, 0.1);
-            transform: scale(1.05);
-        }
-
-        .btn-audio.loading-audio {
-            cursor: wait;
-            opacity: 0.7;
-        }
-
-        .btn-audio.loading-audio i {
-            animation: spin 1s linear infinite;
-        }
-
-        .btn-audio.playing-audio {
-            background: #6366f1;
-            color: white;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-        }
         
         /* Mobile nav */
         .mobile-nav {
@@ -438,6 +403,9 @@
         // Global CSRF token
         const csrfToken = '<?= csrfToken() ?>';
         
+        // Global BASE_URL for TTS module
+        window.BASE_URL = '<?= BASE_URL ?>';
+        
         // Toast auto-hide
         document.querySelectorAll('.toast').forEach(toast => {
             setTimeout(() => {
@@ -496,5 +464,8 @@
             }, 4000);
         }
     </script>
+    
+    <!-- TTS Module -->
+    <script src="<?= BASE_URL ?>/js/tts.js"></script>
 </body>
 </html>
