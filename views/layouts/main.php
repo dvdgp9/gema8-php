@@ -461,5 +461,6 @@
             }, 4000);
         }
     </script>
+    <script src="<?= BASE_URL ?>/js/tts.js"></script>
 </body>
 </html>

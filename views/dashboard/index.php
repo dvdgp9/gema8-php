@@ -303,6 +303,11 @@
             document.getElementById('translatedText').textContent = result.translated_text;
             document.getElementById('translationResult').classList.remove('hidden');
             
+            // Add audio button for the translated text
+            const translatedTextEl = document.getElementById('translatedText');
+            const targetLanguage = translationDirection === 'to-target' ? currentLanguage : 'english';
+            addAudioButton(translatedTextEl.parentElement, result.translated_text, targetLanguage);
+            
             const seenCountEl = document.getElementById('seenCount');
             const ephemeralBadge = document.getElementById('ephemeralBadge');
             
@@ -380,10 +385,19 @@
             
             const phrasesContainer = document.getElementById('whisperPhrases');
             phrasesContainer.innerHTML = result.phrases.map((phrase, i) => `
-                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <p class="font-medium text-lg">${escapeHtml(phrase.target_sentence)}</p>
-                    <p class="text-gray-600 mt-1">${escapeHtml(phrase.translation)}</p>
-                    <p class="text-sm text-gray-500 mt-1 italic">${escapeHtml(phrase.pronunciation)}</p>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200" id="phrase-${i}">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex-1">
+                            <p class="font-medium text-lg">${escapeHtml(phrase.target_sentence)}</p>
+                            <p class="text-gray-600 mt-1">${escapeHtml(phrase.translation)}</p>
+                            <p class="text-sm text-gray-500 mt-1 italic">${escapeHtml(phrase.pronunciation)}</p>
+                        </div>
+                        <button onclick="ttsManager.speak('${escapeHtml(phrase.target_sentence).replace(/'/g, "\\'")}', '${currentLanguage}', this)" 
+                                class="btn-audio inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors flex-shrink-0"
+                                title="Listen">
+                            <i data-lucide="volume-2" class="h-4 w-4"></i>
+                        </button>
+                    </div>
                 </div>
             `).join('');
             
