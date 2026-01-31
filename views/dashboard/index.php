@@ -89,43 +89,10 @@
                                 <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                                 Translation
                             </p>
-                        <!-- Translation Actions -->
-                        <div class="flex items-center gap-2">
-                            <button 
-                                id="ttsTranslateBtn"
-                                onclick="speakTranslation()"
-                                class="p-2 rounded-lg bg-white/80 hover:bg-white text-primary-600 transition-all"
-                                title="Listen to translation"
-                                style="display: none;"
-                            >
-                                <i data-lucide="volume-2" class="h-4 w-4"></i>
-                            </button>
-                            <button 
-                                id="ttsRepeatBtn"
-                                onclick="repeatTranslation()"
-                                class="p-2 rounded-lg bg-white/80 hover:bg-white text-primary-600 transition-all"
-                                title="Repeat last"
-                                style="display: none;"
-                            >
-                                <i data-lucide="repeat" class="h-4 w-4"></i>
-                            </button>
-                            <select 
-                                id="ttsSpeed"
-                                onchange="updateTTSSpeed(this.value)"
-                                class="text-xs bg-white/80 rounded-lg px-2 py-1 border-0 text-primary-700 font-medium cursor-pointer"
-                                title="Playback speed"
-                                style="display: none;"
-                            >
-                                <option value="0.5">0.5x</option>
-                                <option value="0.75">0.75x</option>
-                                <option value="1" selected>1x</option>
-                                <option value="1.25">1.25x</option>
-                            </select>
                             <span id="ephemeralBadge" class="hidden badge badge-accent">
                                 <i data-lucide="eye-off" class="h-3 w-3"></i>
                                 Ephemeral
                             </span>
-                        </div>
                         </div>
                         <p id="translatedText" class="text-slate-800 whitespace-pre-wrap text-lg"></p>
                         <p id="seenCount" class="mt-3 text-xs text-slate-500 hidden"></p>
@@ -250,16 +217,9 @@
 </main>
 
 <script>
-    // Include TTS module
-    const ttsScript = document.createElement('script');
-    ttsScript.src = '<?= BASE_URL ?>/js/tts.js';
-    document.head.appendChild(ttsScript);
-    
     // State
     let translationDirection = 'to-target';
     let ephemeralMode = false;
-    let lastTranslatedText = '';
-    let lastTargetLanguage = '';
     const currentLanguage = '<?= e($currentLanguage) ?>';
     
     // Load daily tip
@@ -343,17 +303,6 @@
             document.getElementById('translatedText').textContent = result.translated_text;
             document.getElementById('translationResult').classList.remove('hidden');
             
-            // Store for TTS
-            lastTranslatedText = result.translated_text;
-            lastTargetLanguage = targetLanguage;
-            
-            // Show TTS button if browser supports it
-            if (window.speechSynthesis) {
-                document.getElementById('ttsTranslateBtn').style.display = 'flex';
-                document.getElementById('ttsRepeatBtn').style.display = 'flex';
-                document.getElementById('ttsSpeed').style.display = 'block';
-            }
-            
             const seenCountEl = document.getElementById('seenCount');
             const ephemeralBadge = document.getElementById('ephemeralBadge');
             
@@ -431,21 +380,10 @@
             
             const phrasesContainer = document.getElementById('whisperPhrases');
             phrasesContainer.innerHTML = result.phrases.map((phrase, i) => `
-                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 relative group">
-                    <div class="flex items-start gap-3">
-                        <div class="flex-1">
-                            <p class="font-medium text-lg">${escapeHtml(phrase.target_sentence)}</p>
-                            <p class="text-gray-600 mt-1">${escapeHtml(phrase.translation)}</p>
-                            <p class="text-sm text-gray-500 mt-1 italic">${escapeHtml(phrase.pronunciation)}</p>
-                        </div>
-                        <button 
-                            onclick="speakPhrase('${escapeHtml(phrase.target_sentence).replace(/'/g, "\\'")}', currentLanguage)"
-                            class="p-2 rounded-lg bg-white border border-gray-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all opacity-0 group-hover:opacity-100"
-                            title="Listen"
-                        >
-                            <i data-lucide="volume-2" class="h-4 w-4"></i>
-                        </button>
-                    </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p class="font-medium text-lg">${escapeHtml(phrase.target_sentence)}</p>
+                    <p class="text-gray-600 mt-1">${escapeHtml(phrase.translation)}</p>
+                    <p class="text-sm text-gray-500 mt-1 italic">${escapeHtml(phrase.pronunciation)}</p>
                 </div>
             `).join('');
             
@@ -467,51 +405,6 @@
             const response = await fetch('<?= BASE_URL ?>/', { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             // For now just reload will work, or we can make a dedicated endpoint
         } catch (e) {}
-    }
-    
-    function speakTranslation() {
-        if (!lastTranslatedText || !lastTargetLanguage) return;
-        
-        const btn = document.getElementById('ttsTranslateBtn');
-        const originalHTML = btn.innerHTML;
-        
-        speakText(lastTranslatedText, lastTargetLanguage, {
-            onStart: () => {
-                btn.innerHTML = '<span class="spinner"></span>';
-                btn.classList.add('animate-pulse');
-            },
-            onEnd: () => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('animate-pulse');
-                lucide.createIcons();
-            },
-            onError: () => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('animate-pulse');
-                showToast('Voice playback not available', 'error');
-                lucide.createIcons();
-            }
-        }).catch(() => {
-            btn.innerHTML = originalHTML;
-            btn.classList.remove('animate-pulse');
-            lucide.createIcons();
-        });
-    }
-    
-    function speakPhrase(text, lang) {
-        speakText(text, lang, {
-            onError: () => showToast('Voice playback not available', 'error')
-        });
-    }
-    
-    function repeatTranslation() {
-        speakTranslation();
-    }
-    
-    function updateTTSSpeed(rate) {
-        if (window.TTS) {
-            window.TTS.setRate(parseFloat(rate));
-        }
     }
     
     function escapeHtml(text) {
