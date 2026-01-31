@@ -1,62 +1,38 @@
-# Gema8 - Token de Sesión Persistente + Panel Admin
+# Gema8 - Integración de Audio con ElevenLabs
 
 ## Background and Motivation
-El usuario necesitaba:
-1. **Token de sesión persistente (60 días)** - Implementar "Remember me" con cookie segura
-2. **Panel completo de gestión de usuarios para superadmin (Oracle)** - Listar usuarios, editar créditos, cambiar roles, ver estadísticas
+El usuario necesita poder escuchar las traducciones generadas. Anteriormente se intentó con Web Speech API pero se prefiere ElevenLabs por su superior calidad de voz, especialmente crítica para el aprendizaje de idiomas donde la pronunciación correcta es fundamental.
 
 ## Key Challenges and Analysis
-- La sesión actual usa `SESSION_LIFETIME` de 7 días (cookies de sesión PHP)
-- Para 60 días necesitamos un token persistente almacenado en BD (más seguro que solo cookie)
-- El rol `Oracle` ya existe y tiene privilegios especiales
-- Necesitamos crear: tabla `remember_tokens`, AdminController, vistas del panel
+- **Gestión de API Key:** Debe estar en el lado del servidor para seguridad.
+- **Latencia:** Generar audio en tiempo real puede tardar 1-2 segundos.
+- **Coste/Tokens:** ElevenLabs tiene límites, se debería considerar caché si el mismo texto se repite mucho (opcional para MVP).
+- **Mapeo de Voces:** Necesitamos seleccionar voces adecuadas de ElevenLabs para cada idioma soportado.
 
 ## High-level Task Breakdown
 
-### Tarea 1: Token de sesión persistente (60 días)
-- [x] Crear migración para tabla `remember_tokens`
-- [x] Modificar `includes/auth.php` para manejar tokens de "remember me"
-- [x] Modificar `AuthController.php` para procesar checkbox "remember me"
-- [x] Modificar vista de login para añadir checkbox
-- [x] Modificar logout para limpiar token
+### Tarea 1: Configuración Backend
+- [x] Añadir `ELEVENLABS_API_KEY` a `config/config.php`
+- [ ] Crear endpoint `/api/tts` en `ApiController.php` que conecte con ElevenLabs
+- [ ] Implementar lógica de selección de voz por idioma
 
-### Tarea 2: Panel de Administración (Oracle)
-- [x] Crear `AdminController.php`
-- [x] Añadir métodos al modelo `User.php` para listar usuarios
-- [x] Añadir métodos al modelo `Profile.php` para setear créditos directamente
-- [x] Crear vistas: `views/admin/index.php`, `views/admin/user-edit.php`
-- [x] Añadir rutas en `public/index.php`
-- [x] Añadir middleware `requireOracle()` para proteger rutas
+### Tarea 2: Frontend e Interfaz
+- [ ] Crear `public/js/audio-player.js` para manejar la carga y reproducción del audio
+- [ ] Añadir botones de "Escuchar" con iconos de Lucide en `views/dashboard/index.php`
+- [ ] Añadir botones de audio en `views/whispers/index.php`
+
+### Tarea 3: Pulido y UX
+- [ ] Añadir estados de carga (spinner) mientras se genera el audio
+- [ ] Asegurar que el reproductor se limpie correctamente para evitar fugas de memoria
 
 ## Project Status Board
-- [x] Tarea 1.1: Crear tabla `remember_tokens` en schema.sql
-- [x] Tarea 1.2: Implementar funciones de token en auth.php
-- [x] Tarea 1.3: Modificar AuthController para "remember me"
-- [x] Tarea 1.4: Actualizar vista de login
-- [x] Tarea 2.1: Crear AdminController
-- [x] Tarea 2.2: Añadir métodos a modelos User/Profile
-- [x] Tarea 2.3: Crear vistas del panel admin
-- [x] Tarea 2.4: Añadir rutas y protección
+- [ ] Tarea 1: Backend ElevenLabs
+- [ ] Tarea 2: Frontend JS & UI
+- [ ] Tarea 3: Pruebas y Ajustes
 
 ## Executor's Feedback or Assistance Requests
-**IMPLEMENTACIÓN COMPLETA** - Pendiente verificación del usuario.
-
-### Acción requerida del usuario:
-Ejecutar la migración SQL en la base de datos:
-```sql
-CREATE TABLE IF NOT EXISTS `remember_tokens` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NOT NULL,
-    `token_hash` VARCHAR(255) NOT NULL,
-    `expires_at` DATETIME NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-    INDEX `idx_token_hash` (`token_hash`),
-    INDEX `idx_expires` (`expires_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
+**PROCEDIENDO CON LA IMPLEMENTACIÓN** - Iniciando con la configuración de la API Key.
 
 ## Lessons
-- El rol Oracle ya existía en el sistema como superadmin con créditos ilimitados
-- La sesión se manejaba con cookies PHP estándar (7 días), ahora añadido token persistente de 60 días
-- Se rota el token en cada login automático para mayor seguridad
+- ElevenLabs ofrece voces mucho más naturales que la Web Speech API integrada en navegadores.
+- Es vital no exponer la API key en el frontend.

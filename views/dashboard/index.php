@@ -83,16 +83,26 @@
                         placeholder="Type or paste text ready to ripple…"
                     ></textarea>
                     
-                    <div id="translationResult" class="hidden mb-4 p-4 bg-gradient-to-br from-primary-50 to-slate-50 rounded-xl border border-primary-100">
+                    <div id="translationResult" class="hidden mb-4 p-4 bg-gradient-to-br from-primary-50 to-slate-50 rounded-xl border border-primary-100 relative group">
                         <div class="flex items-center justify-between mb-2">
                             <p class="text-sm font-semibold text-primary-700 flex items-center gap-2">
                                 <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                                 Translation
                             </p>
-                            <span id="ephemeralBadge" class="hidden badge badge-accent">
-                                <i data-lucide="eye-off" class="h-3 w-3"></i>
-                                Ephemeral
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <button 
+                                    id="playTranslationBtn"
+                                    onclick="playAudio(document.getElementById('translatedText').textContent, translationDirection === 'to-target' ? currentLanguage : 'english', this)"
+                                    class="btn-audio"
+                                    title="Listen to translation"
+                                >
+                                    <i data-lucide="volume-2" class="w-5 h-5"></i>
+                                </button>
+                                <span id="ephemeralBadge" class="hidden badge badge-accent">
+                                    <i data-lucide="eye-off" class="h-3 w-3"></i>
+                                    Ephemeral
+                                </span>
+                            </div>
                         </div>
                         <p id="translatedText" class="text-slate-800 whitespace-pre-wrap text-lg"></p>
                         <p id="seenCount" class="mt-3 text-xs text-slate-500 hidden"></p>
@@ -380,10 +390,19 @@
             
             const phrasesContainer = document.getElementById('whisperPhrases');
             phrasesContainer.innerHTML = result.phrases.map((phrase, i) => `
-                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <p class="font-medium text-lg">${escapeHtml(phrase.target_sentence)}</p>
-                    <p class="text-gray-600 mt-1">${escapeHtml(phrase.translation)}</p>
-                    <p class="text-sm text-gray-500 mt-1 italic">${escapeHtml(phrase.pronunciation)}</p>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-start gap-4">
+                    <div class="flex-1">
+                        <p class="font-medium text-lg">${escapeHtml(phrase.target_sentence)}</p>
+                        <p class="text-gray-600 mt-1">${escapeHtml(phrase.translation)}</p>
+                        <p class="text-sm text-gray-500 mt-1 italic">${escapeHtml(phrase.pronunciation)}</p>
+                    </div>
+                    <button 
+                        onclick="playAudio('${escapeHtml(phrase.target_sentence)}', currentLanguage, this)"
+                        class="btn-audio shrink-0 mt-1"
+                        title="Listen"
+                    >
+                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                    </button>
                 </div>
             `).join('');
             

@@ -97,16 +97,25 @@
                     <div class="p-4 grid gap-3">
                         <?php foreach ($whisper['phrases'] as $i => $phrase): ?>
                         <div class="p-4 bg-gradient-to-br from-emerald-50 to-slate-50 rounded-xl border border-emerald-100 hover:shadow-sm transition-all">
-                            <div class="flex items-start gap-3">
-                                <span class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0"><?= $i + 1 ?></span>
-                                <div class="flex-1">
-                                    <p class="font-semibold text-slate-800 text-lg"><?= e($phrase['target_sentence']) ?></p>
-                                    <p class="text-slate-600 mt-1"><?= e($phrase['translation']) ?></p>
-                                    <p class="text-sm text-emerald-600 mt-2 flex items-center gap-1">
-                                        <i data-lucide="volume-2" class="h-3 w-3"></i>
-                                        <?= e($phrase['pronunciation']) ?>
-                                    </p>
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex items-start gap-3 flex-1">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0"><?= $i + 1 ?></span>
+                                    <div class="flex-1">
+                                        <p class="font-semibold text-slate-800 text-lg"><?= e($phrase['target_sentence']) ?></p>
+                                        <p class="text-slate-600 mt-1"><?= e($phrase['translation']) ?></p>
+                                        <p class="text-sm text-emerald-600 mt-2 flex items-center gap-1">
+                                            <i data-lucide="info" class="h-3 w-3"></i>
+                                            <?= e($phrase['pronunciation']) ?>
+                                        </p>
+                                    </div>
                                 </div>
+                                <button 
+                                    onclick="playAudio('<?= e(addslashes($phrase['target_sentence'])) ?>', '<?= e($whisper['target_language']) ?>', this)"
+                                    class="btn-audio shrink-0"
+                                    title="Listen"
+                                >
+                                    <i data-lucide="volume-2" class="w-5 h-5"></i>
+                                </button>
                             </div>
                         </div>
                         <?php endforeach; ?>
