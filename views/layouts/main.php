@@ -78,7 +78,7 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="<?= BASE_URL ?>/public/js/audio-player.js"></script>
+    <script src="<?= BASE_URL ?>/js/audio-player.js"></script>
     
     <style>
         * { font-family: 'Inter', system-ui, sans-serif; }
