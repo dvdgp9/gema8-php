@@ -225,6 +225,7 @@ conversation_messages: id, conversation_id, direction (me/them), original_text, 
 - Para vistas full-screen (como el chat), ocultar mobile nav y quitar pb-24 del layout condicionalmente
 - Gemini responde JSON envuelto en markdown code blocks; siempre limpiar con preg_replace antes de json_decode
 - Context windowing: enviar últimos 20 mensajes + resumen de anteriores para mantener costes bajos
+- No usar `view()` como nombre de método en controllers hijos — conflicto con `Controller::view(string $view, array $data)`. Usar `show()` en su lugar
 
 ---
 

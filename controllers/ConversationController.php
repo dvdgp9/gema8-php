@@ -40,7 +40,7 @@ class ConversationController extends Controller {
     /**
      * Show single conversation (chat view)
      */
-    public function view(): void {
+    public function show(): void {
         requireAuth();
         
         $id = (int) ($_GET['id'] ?? 0);
