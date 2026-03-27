@@ -390,26 +390,26 @@ class ApiController extends Controller {
         $direction = sanitize($input['direction'] ?? 'me');
         
         if ($conversationId <= 0) {
-            $this->json(['error' => 'Invalid conversation ID'], 400);
+            $this->json(['error' => 'Invalid conversation ID'], 400); return;
         }
         
         if (empty($text)) {
-            $this->json(['error' => 'Text is required'], 400);
+            $this->json(['error' => 'Text is required'], 400); return;
         }
         
         if (!in_array($direction, ['me', 'them'])) {
-            $this->json(['error' => 'Invalid direction'], 400);
+            $this->json(['error' => 'Invalid direction'], 400); return;
         }
         
         // Verify ownership
         $conversation = Conversation::findForUser($conversationId, userId());
         if (!$conversation) {
-            $this->json(['error' => 'Conversation not found'], 404);
+            $this->json(['error' => 'Conversation not found'], 404); return;
         }
         
         // Check credits
         if (!hasCredits(CREDIT_COST_CONVERSATION)) {
-            $this->json(['error' => 'Insufficient credits'], 402);
+            $this->json(['error' => 'Insufficient credits'], 402); return;
         }
         
         // Get recent messages for context
@@ -443,12 +443,12 @@ class ApiController extends Controller {
         );
         
         if (!$result) {
-            $this->json(['error' => 'Translation failed'], 500);
+            $this->json(['error' => 'Translation failed'], 500); return;
         }
         
         // Deduct credits
         if (!deductCredits(CREDIT_COST_CONVERSATION)) {
-            $this->json(['error' => 'Failed to process credits'], 500);
+            $this->json(['error' => 'Failed to process credits'], 500); return;
         }
         
         // Save message
@@ -461,7 +461,7 @@ class ApiController extends Controller {
         );
         
         if (!$message) {
-            $this->json(['error' => 'Failed to save message'], 500);
+            $this->json(['error' => 'Failed to save message'], 500); return;
         }
         
         $this->json($message);
@@ -480,17 +480,17 @@ class ApiController extends Controller {
         $conversationId = (int) ($input['conversation_id'] ?? 0);
         
         if ($messageId <= 0 || $conversationId <= 0) {
-            $this->json(['error' => 'Invalid data'], 400);
+            $this->json(['error' => 'Invalid data'], 400); return;
         }
         
         // Verify conversation ownership
         $conversation = Conversation::findForUser($conversationId, userId());
         if (!$conversation) {
-            $this->json(['error' => 'Conversation not found'], 404);
+            $this->json(['error' => 'Conversation not found'], 404); return;
         }
         
         if (ConversationMessage::delete($messageId, $conversationId)) {
-            $this->json(['success' => true]);
+            $this->json(['success' => true]); return;
         }
         
         $this->json(['error' => 'Failed to delete message'], 500);

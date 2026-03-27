@@ -80,11 +80,11 @@ class ConversationController extends Controller {
         $fidelity = sanitize($input['fidelity'] ?? 'natural');
         
         if (empty($title)) {
-            $this->json(['error' => 'Title is required'], 400);
+            $this->json(['error' => 'Title is required'], 400); return;
         }
         
         if (empty($targetLanguage) || !isValidLanguage($targetLanguage)) {
-            $this->json(['error' => 'Invalid target language'], 400);
+            $this->json(['error' => 'Invalid target language'], 400); return;
         }
         
         $validLevels = ['beginner', 'intermediate', 'advanced'];
@@ -100,7 +100,7 @@ class ConversationController extends Controller {
         );
         
         if (!$conversation) {
-            $this->json(['error' => 'Failed to create conversation'], 500);
+            $this->json(['error' => 'Failed to create conversation'], 500); return;
         }
         
         $this->json($conversation);
@@ -122,12 +122,12 @@ class ConversationController extends Controller {
         $fidelity = sanitize($input['fidelity'] ?? 'natural');
         
         if ($id <= 0 || empty($title)) {
-            $this->json(['error' => 'Invalid data'], 400);
+            $this->json(['error' => 'Invalid data'], 400); return;
         }
         
         $conversation = Conversation::findForUser($id, userId());
         if (!$conversation) {
-            $this->json(['error' => 'Conversation not found'], 404);
+            $this->json(['error' => 'Conversation not found'], 404); return;
         }
         
         $validLevels = ['beginner', 'intermediate', 'advanced'];
@@ -139,7 +139,7 @@ class ConversationController extends Controller {
         if (!in_array($fidelity, $validFidelities)) $fidelity = 'natural';
         
         if (Conversation::updateSettings($id, userId(), $title, $level, $tone, $fidelity)) {
-            $this->json(['success' => true]);
+            $this->json(['success' => true]); return;
         }
         
         $this->json(['error' => 'Failed to update conversation'], 500);
@@ -156,11 +156,11 @@ class ConversationController extends Controller {
         $id = (int) ($input['id'] ?? 0);
         
         if ($id <= 0) {
-            $this->json(['error' => 'Invalid conversation ID'], 400);
+            $this->json(['error' => 'Invalid conversation ID'], 400); return;
         }
         
         if (Conversation::archive($id, userId())) {
-            $this->json(['success' => true]);
+            $this->json(['success' => true]); return;
         }
         
         $this->json(['error' => 'Failed to archive conversation'], 500);
@@ -177,11 +177,11 @@ class ConversationController extends Controller {
         $id = (int) ($input['id'] ?? 0);
         
         if ($id <= 0) {
-            $this->json(['error' => 'Invalid conversation ID'], 400);
+            $this->json(['error' => 'Invalid conversation ID'], 400); return;
         }
         
         if (Conversation::unarchive($id, userId())) {
-            $this->json(['success' => true]);
+            $this->json(['success' => true]); return;
         }
         
         $this->json(['error' => 'Failed to unarchive conversation'], 500);
@@ -198,7 +198,7 @@ class ConversationController extends Controller {
         $id = (int) ($input['id'] ?? 0);
         
         if ($id <= 0) {
-            $this->json(['error' => 'Invalid conversation ID'], 400);
+            $this->json(['error' => 'Invalid conversation ID'], 400); return;
         }
         
         if (Conversation::delete($id, userId())) {
