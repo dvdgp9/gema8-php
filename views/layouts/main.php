@@ -256,6 +256,21 @@
             animation: spin 0.8s linear infinite;
         }
         
+        .spinner-sm {
+            width: 0.875rem;
+            height: 0.875rem;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -370,11 +385,11 @@
 <body class="bg-mesh min-h-screen antialiased">
     <?php require ROOT_PATH . '/views/partials/toast.php'; ?>
     
-    <div class="pb-24 md:pb-0">
+    <div class="<?= strpos($uri ?? '', '/conversations/view') === 0 ? '' : 'pb-24 md:pb-0' ?>">
         <?= $content ?>
     </div>
     
-    <?php if (isLoggedIn()): ?>
+    <?php if (isLoggedIn() && strpos($uri ?? '', '/conversations/view') !== 0): ?>
     <!-- Mobile Navigation -->
     <nav class="mobile-nav">
         <a href="<?= BASE_URL ?>/" class="mobile-nav-item <?= ($uri ?? '') === '/' ? 'active' : '' ?>">
@@ -388,6 +403,10 @@
         <a href="<?= BASE_URL ?>/whispers" class="mobile-nav-item <?= strpos($uri ?? '', '/whispers') === 0 ? 'active' : '' ?>">
             <i data-lucide="sparkles" class="w-5 h-5"></i>
             <span>Whispers</span>
+        </a>
+        <a href="<?= BASE_URL ?>/conversations" class="mobile-nav-item <?= strpos($uri ?? '', '/conversations') === 0 ? 'active' : '' ?>">
+            <i data-lucide="messages-square" class="w-5 h-5"></i>
+            <span>Chats</span>
         </a>
         <a href="<?= BASE_URL ?>/account" class="mobile-nav-item <?= strpos($uri ?? '', '/account') === 0 ? 'active' : '' ?>">
             <i data-lucide="user-circle" class="w-5 h-5"></i>

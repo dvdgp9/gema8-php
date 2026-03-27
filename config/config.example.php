@@ -61,6 +61,7 @@ define('HASH_COST', 12); // bcrypt cost factor (10-12 recommended)
 define('CREDIT_COST_TRANSLATE', 1);
 define('CREDIT_COST_ASK', 1);
 define('CREDIT_COST_WHISPER', 1);
+define('CREDIT_COST_CONVERSATION', 1);
 define('DEFAULT_CREDITS', 500); // Credits for new users
 
 // ===========================================

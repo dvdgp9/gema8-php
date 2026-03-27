@@ -59,6 +59,11 @@
             Whispers
         </a>
         
+        <a href="<?= BASE_URL ?>/conversations" class="hidden md:inline-flex btn btn-secondary">
+            <i data-lucide="messages-square" class="h-4 w-4 mr-2"></i>
+            Conversations
+        </a>
+        
         <?php if (isOracle()): ?>
         <a href="<?= BASE_URL ?>/admin" class="hidden md:inline-flex btn btn-secondary !bg-purple-100 !text-purple-700 hover:!bg-purple-200">
             <i data-lucide="shield" class="h-4 w-4 mr-2"></i>

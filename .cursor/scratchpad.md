@@ -195,23 +195,25 @@ conversation_messages: id, conversation_id, direction (me/them), original_text, 
 ```
 
 ### Task Breakdown
-1. [ ] SQL schema: conversations + conversation_messages
-2. [ ] Models: Conversation.php + ConversationMessage.php
-3. [ ] Gemini: método de traducción contextual
-4. [ ] ConversationController.php (list, view, create, archive, delete)
-5. [ ] API endpoints: send message, delete message
-6. [ ] Routes en index.php
-7. [ ] Vista: lista de conversaciones (búsqueda, orden fecha, crear)
-8. [ ] Vista: chat individual (mobile-first, burbujas, copy/TTS)
-9. [ ] Navegación: añadir a header + mobile nav
-10. [ ] Settings: level/tone/fidelity por conversación
+1. [x] SQL schema: conversations + conversation_messages
+2. [x] Models: Conversation.php + ConversationMessage.php
+3. [x] Gemini: método de traducción contextual (conversationTranslate + summarizeConversation)
+4. [x] ConversationController.php (list, view, create, update, archive, unarchive, delete)
+5. [x] API endpoints: send message, delete message (en ApiController)
+6. [x] Routes en index.php + CREDIT_COST_CONVERSATION en config
+7. [x] Vista: lista de conversaciones (búsqueda, orden fecha, crear, archivar)
+8. [x] Vista: chat individual (mobile-first, burbujas, copy/TTS, settings modal)
+9. [x] Navegación: header desktop + mobile nav (oculta en chat view)
+10. [x] Settings: level/tone/fidelity por conversación (en modal de crear + settings)
 
 ## Project Status Board
 - [x] Review completo de la app (22 sugerencias documentadas)
-- [ ] Feature Conversaciones — EN PROGRESO
+- [x] Feature Conversaciones — IMPLEMENTACIÓN COMPLETA
 
 ## Executor's Feedback or Assistance Requests
-Ninguno por ahora.
+**IMPLEMENTACIÓN COMPLETA** — Pendiente que el usuario:
+1. Ejecute el SQL de las tablas `conversations` y `conversation_messages` en su BD
+2. Pruebe manualmente la funcionalidad
 
 ## Lessons
 - El rol Oracle ya existía en el sistema como superadmin con créditos ilimitados
@@ -219,6 +221,10 @@ Ninguno por ahora.
 - Se rota el token en cada login automático para mayor seguridad
 - La app usa Tailwind CDN (solo dev), Lucide icons sin versión fija, y vanilla JS
 - El backend es PHP puro sin framework, con MVC manual y Gemini API + ElevenLabs TTS
+- La variable $uri del index.php es accesible globalmente en layouts (ya la usaba el mobile nav existente)
+- Para vistas full-screen (como el chat), ocultar mobile nav y quitar pb-24 del layout condicionalmente
+- Gemini responde JSON envuelto en markdown code blocks; siempre limpiar con preg_replace antes de json_decode
+- Context windowing: enviar últimos 20 mensajes + resumen de anteriores para mantener costes bajos
 
 ---
 

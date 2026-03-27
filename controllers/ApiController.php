@@ -375,4 +375,124 @@ class ApiController extends Controller {
             $this->json(['error' => 'TTS Error: ' . $e->getMessage()], 500);
         }
     }
+    
+    /**
+     * Send a message in a conversation (translate with context)
+     */
+    public function conversationSend(): void {
+        requireAuth();
+        requireCsrf();
+        
+        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        
+        $conversationId = (int) ($input['conversation_id'] ?? 0);
+        $text = trim($input['text'] ?? '');
+        $direction = sanitize($input['direction'] ?? 'me');
+        
+        if ($conversationId <= 0) {
+            $this->json(['error' => 'Invalid conversation ID'], 400);
+        }
+        
+        if (empty($text)) {
+            $this->json(['error' => 'Text is required'], 400);
+        }
+        
+        if (!in_array($direction, ['me', 'them'])) {
+            $this->json(['error' => 'Invalid direction'], 400);
+        }
+        
+        // Verify ownership
+        $conversation = Conversation::findForUser($conversationId, userId());
+        if (!$conversation) {
+            $this->json(['error' => 'Conversation not found'], 404);
+        }
+        
+        // Check credits
+        if (!hasCredits(CREDIT_COST_CONVERSATION)) {
+            $this->json(['error' => 'Insufficient credits'], 402);
+        }
+        
+        // Get recent messages for context
+        $recentMessages = ConversationMessage::getRecentForContext($conversationId, 20);
+        
+        // Check if we need to generate a summary (context windowing)
+        $totalMessages = ConversationMessage::countForConversation($conversationId);
+        if ($totalMessages > 20 && empty($conversation['summary'])) {
+            // Get older messages for summary
+            $allMessages = ConversationMessage::getForConversation($conversationId, $totalMessages);
+            $olderMessages = array_slice($allMessages, 0, $totalMessages - 20);
+            if (!empty($olderMessages)) {
+                $summary = Gemini::summarizeConversation($olderMessages, $conversation['target_language']);
+                if ($summary) {
+                    Conversation::updateSummary($conversationId, $summary);
+                    $conversation['summary'] = $summary;
+                }
+            }
+        }
+        
+        // Translate via Gemini with context
+        $result = Gemini::conversationTranslate(
+            $text,
+            $direction,
+            $conversation['target_language'],
+            $conversation['level'],
+            $conversation['tone'],
+            $conversation['fidelity'],
+            $recentMessages,
+            $conversation['summary']
+        );
+        
+        if (!$result) {
+            $this->json(['error' => 'Translation failed'], 500);
+        }
+        
+        // Deduct credits
+        if (!deductCredits(CREDIT_COST_CONVERSATION)) {
+            $this->json(['error' => 'Failed to process credits'], 500);
+        }
+        
+        // Save message
+        $message = ConversationMessage::create(
+            $conversationId,
+            $direction,
+            $text,
+            $result['translated_text'],
+            $result['cultural_note']
+        );
+        
+        if (!$message) {
+            $this->json(['error' => 'Failed to save message'], 500);
+        }
+        
+        $this->json($message);
+    }
+    
+    /**
+     * Delete a conversation message
+     */
+    public function conversationDeleteMessage(): void {
+        requireAuth();
+        requireCsrf();
+        
+        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        
+        $messageId = (int) ($input['message_id'] ?? 0);
+        $conversationId = (int) ($input['conversation_id'] ?? 0);
+        
+        if ($messageId <= 0 || $conversationId <= 0) {
+            $this->json(['error' => 'Invalid data'], 400);
+        }
+        
+        // Verify conversation ownership
+        $conversation = Conversation::findForUser($conversationId, userId());
+        if (!$conversation) {
+            $this->json(['error' => 'Conversation not found'], 404);
+        }
+        
+        if (ConversationMessage::delete($messageId, $conversationId)) {
+            $this->json(['success' => true]);
+        }
+        
+        $this->json(['error' => 'Failed to delete message'], 500);
+    }
 }

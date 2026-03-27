@@ -25,6 +25,8 @@ require_once ROOT_PATH . '/models/Profile.php';
 require_once ROOT_PATH . '/models/Translation.php';
 require_once ROOT_PATH . '/models/Whisper.php';
 require_once ROOT_PATH . '/models/Tip.php';
+require_once ROOT_PATH . '/models/Conversation.php';
+require_once ROOT_PATH . '/models/ConversationMessage.php';
 
 // Initialize session
 Session::start();
@@ -50,6 +52,8 @@ $routes = [
         '/logout' => 'AuthController@logout',
         '/history' => 'HistoryController@index',
         '/whispers' => 'WhisperController@index',
+        '/conversations' => 'ConversationController@index',
+        '/conversations/view' => 'ConversationController@view',
         '/account' => 'AccountController@index',
         '/admin' => 'AdminController@index',
         '/admin/user' => 'AdminController@editUser',
@@ -72,6 +76,13 @@ $routes = [
         '/api/delete-translation' => 'ApiController@deleteTranslation',
         '/api/delete-whisper' => 'ApiController@deleteWhisper',
         '/api/tts' => 'ApiController@tts',
+        '/api/conversation/send' => 'ApiController@conversationSend',
+        '/api/conversation/delete-message' => 'ApiController@conversationDeleteMessage',
+        '/api/conversation/create' => 'ConversationController@create',
+        '/api/conversation/update' => 'ConversationController@update',
+        '/api/conversation/archive' => 'ConversationController@archive',
+        '/api/conversation/unarchive' => 'ConversationController@unarchive',
+        '/api/conversation/delete' => 'ConversationController@delete',
         
         // Admin endpoints
         '/admin/user/update' => 'AdminController@updateUser',
@@ -88,6 +99,7 @@ require_once ROOT_PATH . '/controllers/HistoryController.php';
 require_once ROOT_PATH . '/controllers/WhisperController.php';
 require_once ROOT_PATH . '/controllers/AccountController.php';
 require_once ROOT_PATH . '/controllers/ApiController.php';
+require_once ROOT_PATH . '/controllers/ConversationController.php';
 require_once ROOT_PATH . '/controllers/AdminController.php';
 
 // Route the request
