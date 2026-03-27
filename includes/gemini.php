@@ -9,7 +9,7 @@ if (!defined('GEMA8')) {
 
 class Gemini {
     private const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-    private const MODEL = 'google/gemini-2.5-flash';
+    private const MODEL = 'google/gemini-3-flash-preview';
     
     /**
      * Send request via OpenRouter API (OpenAI-compatible)
