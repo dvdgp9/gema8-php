@@ -8,21 +8,25 @@ if (!defined('GEMA8')) {
 }
 
 class Gemini {
-    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
-    
+    private const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
+    private const PRIMARY_MODEL = 'gemini-3.1-flash-lite-preview';
+    private const FALLBACK_MODEL = 'gemini-2.5-flash';
+
     /**
-     * Send request to Gemini API
+     * Build the generateContent endpoint URL for a model
      */
-    private static function request(string $prompt): ?string {
+    private static function getApiUrl(string $model): string {
+        return self::API_BASE_URL . $model . ':generateContent';
+    }
+
+    /**
+     * Send a request to a specific Gemini model
+     */
+    private static function requestToModel(string $model, string $prompt): ?string {
         $apiKey = GEMINI_API_KEY;
-        
-        if (empty($apiKey) || $apiKey === 'YOUR_GEMINI_API_KEY') {
-            error_log('Gemini API key not configured');
-            return null;
-        }
-        
-        $url = self::API_URL . '?key=' . $apiKey;
-        
+
+        $url = self::getApiUrl($model) . '?key=' . $apiKey;
+
         $data = [
             'contents' => [
                 [
@@ -38,7 +42,7 @@ class Gemini {
                 'maxOutputTokens' => 2048,
             ]
         ];
-        
+
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -50,30 +54,50 @@ class Gemini {
             CURLOPT_TIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true
         ]);
-        
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
-        
+
         if ($error) {
-            error_log('Gemini API cURL error: ' . $error);
+            error_log("Gemini API cURL error for {$model}: " . $error);
             return null;
         }
-        
+
         if ($httpCode !== 200) {
-            error_log('Gemini API HTTP error: ' . $httpCode . ' - ' . $response);
+            error_log("Gemini API HTTP error for {$model}: " . $httpCode . ' - ' . $response);
             return null;
         }
-        
+
         $result = json_decode($response, true);
-        
+
         if (!isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-            error_log('Gemini API unexpected response: ' . $response);
+            error_log("Gemini API unexpected response for {$model}: " . $response);
             return null;
         }
-        
+
         return $result['candidates'][0]['content']['parts'][0]['text'];
+    }
+    
+    /**
+     * Send request to Gemini API
+     */
+    private static function request(string $prompt): ?string {
+        $apiKey = GEMINI_API_KEY;
+        
+        if (empty($apiKey) || $apiKey === 'YOUR_GEMINI_API_KEY') {
+            error_log('Gemini API key not configured');
+            return null;
+        }
+
+        $result = self::requestToModel(self::PRIMARY_MODEL, $prompt);
+        if ($result !== null) {
+            return $result;
+        }
+
+        error_log('Falling back to ' . self::FALLBACK_MODEL . ' after primary Gemini model failure.');
+        return self::requestToModel(self::FALLBACK_MODEL, $prompt);
     }
     
     /**
@@ -161,6 +185,140 @@ PROMPT;
         }
         
         return $parsed;
+    }
+    
+    /**
+     * Translate in conversation context
+     * Sends recent messages for context-aware translation
+     */
+    public static function conversationTranslate(
+        string $text,
+        string $direction,
+        string $targetLanguage,
+        string $level,
+        string $tone,
+        string $fidelity,
+        array $recentMessages = [],
+        ?string $summary = null
+    ): ?array {
+        $userLanguage = 'english';
+        
+        if ($direction === 'me') {
+            $fromLang = $userLanguage;
+            $toLang = $targetLanguage;
+        } else {
+            $fromLang = $targetLanguage;
+            $toLang = $userLanguage;
+        }
+        
+        $levelMap = [
+            'beginner' => 'Use simple, basic vocabulary and short sentences. Avoid complex grammar.',
+            'intermediate' => 'Use everyday vocabulary with moderate complexity. Natural but not too advanced.',
+            'advanced' => 'Use rich vocabulary, idiomatic expressions, and natural native-like phrasing.'
+        ];
+        
+        $toneMap = [
+            'keep' => 'Maintain the original tone and register of the message.',
+            'formal' => 'Use formal, polite, and respectful language.',
+            'casual' => 'Use casual, friendly, relaxed language.',
+            'funny' => 'Use a humorous, playful, lighthearted tone while preserving meaning.'
+        ];
+        
+        $fidelityMap = [
+            'literal' => 'Translate as literally as possible, keeping word order and structure close to the original.',
+            'natural' => 'Translate naturally. Reorganize phrasing if needed so it sounds fluent in the target language.',
+            'free' => 'Translate freely. Focus on conveying the intent and emotion. You may change structure significantly.'
+        ];
+        
+        $levelInstruction = $levelMap[$level] ?? $levelMap['intermediate'];
+        $toneInstruction = $toneMap[$tone] ?? $toneMap['keep'];
+        $fidelityInstruction = $fidelityMap[$fidelity] ?? $fidelityMap['natural'];
+        
+        // Build conversation context
+        $contextBlock = '';
+        if ($summary) {
+            $contextBlock .= "Summary of earlier conversation:\n{$summary}\n\n";
+        }
+        if (!empty($recentMessages)) {
+            $contextBlock .= "Recent messages in this conversation:\n";
+            foreach ($recentMessages as $msg) {
+                $who = $msg['direction'] === 'me' ? 'User' : 'Other person';
+                $contextBlock .= "- {$who}: {$msg['original_text']} → {$msg['translated_text']}\n";
+            }
+            $contextBlock .= "\n";
+        }
+        
+        $prompt = <<<PROMPT
+You are a real-time conversation translator helping a traveler communicate with a local person in {$targetLanguage}.
+
+{$contextBlock}Now translate the following message from {$fromLang} to {$toLang}.
+
+Translation settings:
+- Level: {$levelInstruction}
+- Tone: {$toneInstruction}
+- Fidelity: {$fidelityInstruction}
+
+IMPORTANT: Respond with ONLY valid JSON, no other text. Use this exact structure:
+{"translated_text":"the translation here","cultural_note":null}
+
+If there is an important cultural note about this message (e.g. something that could be misunderstood, a politeness issue, or a cultural context the traveler should know), include it in "cultural_note" as a brief string. Otherwise keep it null.
+
+Message to translate: {$text}
+PROMPT;
+
+        $result = self::request($prompt);
+        
+        if (!$result) {
+            return null;
+        }
+        
+        // Clean JSON from markdown code blocks
+        $result = preg_replace('/```json\s*|\s*```/', '', $result);
+        $result = preg_replace('/```\s*|\s*```/', '', $result);
+        $result = trim($result);
+        
+        $parsed = json_decode($result, true);
+        
+        if (!$parsed || !isset($parsed['translated_text'])) {
+            // Fallback: extract JSON
+            if (preg_match('/\{[\s\S]*"translated_text"[\s\S]*\}/', $result, $matches)) {
+                $parsed = json_decode($matches[0], true);
+            }
+            if (!$parsed || !isset($parsed['translated_text'])) {
+                error_log('Gemini conversation translate parse error. Response: ' . $result);
+                // Last resort: use raw response as translation
+                return [
+                    'translated_text' => trim($result),
+                    'cultural_note' => null
+                ];
+            }
+        }
+        
+        return [
+            'translated_text' => $parsed['translated_text'],
+            'cultural_note' => $parsed['cultural_note'] ?? null
+        ];
+    }
+    
+    /**
+     * Generate conversation summary for context windowing
+     */
+    public static function summarizeConversation(array $messages, string $targetLanguage): ?string {
+        $messageList = '';
+        foreach ($messages as $msg) {
+            $who = $msg['direction'] === 'me' ? 'User' : 'Other person';
+            $messageList .= "- {$who}: {$msg['original_text']}\n";
+        }
+        
+        $prompt = <<<PROMPT
+Summarize the following conversation between a traveler and a local {$targetLanguage} speaker.
+Keep it concise (3-5 sentences). Include key topics discussed, any agreements made, and important context.
+
+Conversation:
+{$messageList}
+PROMPT;
+
+        return self::request($prompt);
     }
     
     /**

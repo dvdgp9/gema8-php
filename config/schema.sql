@@ -90,4 +90,35 @@ CREATE TABLE IF NOT EXISTS `remember_tokens` (
     INDEX `idx_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Conversations table (real-time travel conversations)
+CREATE TABLE IF NOT EXISTS `conversations` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT UNSIGNED NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `target_language` VARCHAR(50) NOT NULL DEFAULT 'indonesian',
+    `level` ENUM('beginner', 'intermediate', 'advanced') DEFAULT 'intermediate',
+    `tone` ENUM('keep', 'formal', 'casual', 'funny') DEFAULT 'keep',
+    `fidelity` ENUM('literal', 'natural', 'free') DEFAULT 'natural',
+    `summary` TEXT NULL,
+    `is_archived` TINYINT(1) DEFAULT 0,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    INDEX `idx_user_conversations` (`user_id`, `is_archived`),
+    INDEX `idx_updated_at` (`updated_at` DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Conversation messages table
+CREATE TABLE IF NOT EXISTS `conversation_messages` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `conversation_id` INT UNSIGNED NOT NULL,
+    `direction` ENUM('me', 'them') NOT NULL,
+    `original_text` TEXT NOT NULL,
+    `translated_text` TEXT NOT NULL,
+    `cultural_note` TEXT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON DELETE CASCADE,
+    INDEX `idx_conversation_messages` (`conversation_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -170,11 +170,48 @@ El usuario solicita una revisión completa de la app Gema∞ (language learning 
 21. [ ] Tailwind build de producción (A1)
 22. [ ] Cambio de idioma sin reload (B3)
 
+---
+
+## FEATURE: Conversaciones en tiempo real para viajeros
+
+### Concepto
+Chat bidireccional con traducción contextual. El viajero abre una conversación (título = nombre de persona), escribe lo que dice él o lo que le dicen, y Gemini traduce con contexto completo de la conversación.
+
+### Decisiones de diseño
+- **Mobile-first**: UN solo textarea + toggle dirección (Yo digo / Me dicen)
+- **Burbujas tipo chat**: derecha (azul) = yo, izquierda (gris) = ellos. Ambas muestran original + traducción
+- **Contexto a Gemini**: últimos 15-20 mensajes + resumen automático de anteriores
+- **Settings por conversación**: Level (Principiante/Medio/Avanzado), Tone (Mantener/Formal/Casual/Gracioso), Fidelity (Literal/Natural/Libre)
+- **Copy + TTS** por mensaje
+- **Nota cultural** opcional cuando Gemini detecte algo relevante
+- **Archivar** conversaciones (no borrar)
+- **NO** sugerencias de respuesta rápida
+- **Coste**: 1 crédito por mensaje
+
+### Modelo de datos
+```sql
+conversations: id, user_id, title, target_language, level, tone, fidelity, summary, is_archived, created_at, updated_at
+conversation_messages: id, conversation_id, direction (me/them), original_text, translated_text, cultural_note, created_at
+```
+
+### Task Breakdown
+1. [ ] SQL schema: conversations + conversation_messages
+2. [ ] Models: Conversation.php + ConversationMessage.php
+3. [ ] Gemini: método de traducción contextual
+4. [ ] ConversationController.php (list, view, create, archive, delete)
+5. [ ] API endpoints: send message, delete message
+6. [ ] Routes en index.php
+7. [ ] Vista: lista de conversaciones (búsqueda, orden fecha, crear)
+8. [ ] Vista: chat individual (mobile-first, burbujas, copy/TTS)
+9. [ ] Navegación: añadir a header + mobile nav
+10. [ ] Settings: level/tone/fidelity por conversación
+
 ## Project Status Board
-- [ ] Pendiente de revisión del usuario para priorizar tareas
+- [x] Review completo de la app (22 sugerencias documentadas)
+- [ ] Feature Conversaciones — EN PROGRESO
 
 ## Executor's Feedback or Assistance Requests
-Ninguno por ahora. Esperando feedback del usuario sobre qué tareas priorizar.
+Ninguno por ahora.
 
 ## Lessons
 - El rol Oracle ya existía en el sistema como superadmin con créditos ilimitados
