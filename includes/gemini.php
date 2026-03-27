@@ -93,11 +93,16 @@ class Gemini {
     /**
      * Ask a language question
      */
-    public static function askLanguageQuestion(string $question, string $language): ?string {
+    public static function askLanguageQuestion(
+        string $question,
+        string $language,
+        string $responseLanguage = 'english'
+    ): ?string {
         $prompt = "You are an expert language teacher specializing in {$language}. " .
                   "Answer the following question about the {$language} language in a clear, " .
                   "concise, and educational way. Include examples when helpful. " .
-                  "Keep your response under 300 words.\n\n" .
+                  "Keep your response under 300 words. " .
+                  "Write the full answer in {$responseLanguage}, even if the question is asked in another language.\n\n" .
                   "Question: {$question}";
         
         return self::request($prompt);
@@ -106,14 +111,19 @@ class Gemini {
     /**
      * Generate situational phrases (whisper)
      */
-    public static function generateWhisper(string $situation, string $targetLanguage): ?array {
+    public static function generateWhisper(
+        string $situation,
+        string $targetLanguage,
+        string $translationLanguage = 'english'
+    ): ?array {
         $prompt = <<<PROMPT
 Generate practical phrases for learning {$targetLanguage} in this situation: "{$situation}"
 
 IMPORTANT: Respond with ONLY valid JSON, no other text. Use this exact structure:
-{"title":"Short Title Here","phrases":[{"target_sentence":"phrase in {$targetLanguage}","translation":"English meaning","pronunciation":"phonetic guide"}]}
+{"title":"Short Title Here","phrases":[{"target_sentence":"phrase in {$targetLanguage}","translation":"meaning in {$translationLanguage}","pronunciation":"phonetic guide"}]}
 
 Generate 8-10 phrases. Keep them simple and practical.
+Write the title and each "translation" value in {$translationLanguage}.
 PROMPT;
 
         $result = self::request($prompt);
@@ -156,7 +166,12 @@ PROMPT;
     /**
      * Generate daily tip
      */
-    public static function generateDailyTip(string $language, int $daysActive, array $recentTopics = []): ?string {
+    public static function generateDailyTip(
+        string $language,
+        int $daysActive,
+        array $recentTopics = [],
+        string $outputLanguage = 'english'
+    ): ?string {
         $isBasicLevel = $daysActive <= 21;
         $focusArea = $isBasicLevel 
             ? 'basic fundamentals like grammar basics, common phrases, pronunciation, or essential vocabulary'
@@ -165,7 +180,7 @@ PROMPT;
         $prompt = "Generate a brief but interesting daily tip about {$language} or the {$language} language " .
                   "that would be helpful for someone learning the language. Focus on {$focusArea}. " .
                   "Make it concise (50-100 words), educational and easy to understand. " .
-                  "The tip should be in English.";
+                  "Write the tip in {$outputLanguage}.";
         
         if (!empty($recentTopics)) {
             $topicsList = implode(', ', $recentTopics);

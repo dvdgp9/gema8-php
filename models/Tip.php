@@ -8,19 +8,62 @@ if (!defined('GEMA8')) {
 }
 
 class Tip {
+    private static ?bool $outputLanguageColumnReady = null;
+
+    /**
+     * Ensure output_language exists for multilingual tip delivery
+     */
+    private static function ensureOutputLanguageColumn(): bool {
+        if (self::$outputLanguageColumnReady !== null) {
+            return self::$outputLanguageColumnReady;
+        }
+
+        try {
+            $stmt = db()->query("SHOW COLUMNS FROM user_generated_tips LIKE 'output_language'");
+            self::$outputLanguageColumnReady = (bool) $stmt->fetch();
+
+            if (!self::$outputLanguageColumnReady) {
+                db()->exec(
+                    "ALTER TABLE user_generated_tips
+                     ADD COLUMN output_language VARCHAR(50) NOT NULL DEFAULT 'english'
+                     AFTER language"
+                );
+                self::$outputLanguageColumnReady = true;
+            }
+        } catch (PDOException $e) {
+            error_log('Tip schema update error: ' . $e->getMessage());
+            self::$outputLanguageColumnReady = false;
+        }
+
+        return self::$outputLanguageColumnReady;
+    }
+
     /**
      * Get today's tip for user and language
      */
-    public static function getTodaysTip(int $userId, string $language): ?string {
+    public static function getTodaysTip(int $userId, string $language, string $outputLanguage = 'english'): ?string {
+        self::ensureOutputLanguageColumn();
+
         $today = date('Y-m-d');
-        
-        $stmt = db()->prepare(
-            "SELECT tip_content FROM user_generated_tips 
-             WHERE user_id = ? AND language = ? AND DATE(created_at) = ?
-             ORDER BY created_at DESC 
-             LIMIT 1"
-        );
-        $stmt->execute([$userId, $language, $today]);
+
+        if (self::ensureOutputLanguageColumn()) {
+            $stmt = db()->prepare(
+                "SELECT tip_content FROM user_generated_tips 
+                 WHERE user_id = ? AND language = ? AND output_language = ? AND DATE(created_at) = ?
+                 ORDER BY created_at DESC 
+                 LIMIT 1"
+            );
+            $stmt->execute([$userId, $language, $outputLanguage, $today]);
+        } else {
+            $stmt = db()->prepare(
+                "SELECT tip_content FROM user_generated_tips 
+                 WHERE user_id = ? AND language = ? AND DATE(created_at) = ?
+                 ORDER BY created_at DESC 
+                 LIMIT 1"
+            );
+            $stmt->execute([$userId, $language, $today]);
+        }
+
         $result = $stmt->fetch();
         
         return $result ? $result['tip_content'] : null;
@@ -29,7 +72,23 @@ class Tip {
     /**
      * Store generated tip
      */
-    public static function store(int $userId, string $language, string $tipContent, string $briefSummary): bool {
+    public static function store(
+        int $userId,
+        string $language,
+        string $tipContent,
+        string $briefSummary,
+        string $outputLanguage = 'english'
+    ): bool {
+        self::ensureOutputLanguageColumn();
+
+        if (self::ensureOutputLanguageColumn()) {
+            $stmt = db()->prepare(
+                "INSERT INTO user_generated_tips (user_id, language, output_language, tip_content, brief_summary) 
+                 VALUES (?, ?, ?, ?, ?)"
+            );
+            return $stmt->execute([$userId, $language, $outputLanguage, $tipContent, $briefSummary]);
+        }
+
         $stmt = db()->prepare(
             "INSERT INTO user_generated_tips (user_id, language, tip_content, brief_summary) 
              VALUES (?, ?, ?, ?)"
@@ -55,7 +114,7 @@ class Tip {
     /**
      * Get user's tip history
      */
-    public static function getHistory(int $userId, string $language = null, int $limit = 20): array {
+    public static function getHistory(int $userId, ?string $language = null, int $limit = 20): array {
         if ($language) {
             $stmt = db()->prepare(
                 "SELECT * FROM user_generated_tips 

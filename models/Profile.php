@@ -8,16 +8,52 @@ if (!defined('GEMA8')) {
 }
 
 class Profile {
+    private static ?bool $nativeLanguageColumnReady = null;
+
+    /**
+     * Ensure the native_language column exists for older installations
+     */
+    private static function ensureNativeLanguageColumn(): bool {
+        if (self::$nativeLanguageColumnReady !== null) {
+            return self::$nativeLanguageColumnReady;
+        }
+
+        try {
+            $stmt = db()->query("SHOW COLUMNS FROM profiles LIKE 'native_language'");
+            self::$nativeLanguageColumnReady = (bool) $stmt->fetch();
+
+            if (!self::$nativeLanguageColumnReady) {
+                db()->exec(
+                    "ALTER TABLE profiles
+                     ADD COLUMN native_language VARCHAR(50) NOT NULL DEFAULT 'english'
+                     AFTER current_language"
+                );
+                self::$nativeLanguageColumnReady = true;
+            }
+        } catch (PDOException $e) {
+            error_log('Profile schema update error: ' . $e->getMessage());
+            self::$nativeLanguageColumnReady = false;
+        }
+
+        return self::$nativeLanguageColumnReady;
+    }
+
     /**
      * Find profile by user ID
      */
     public static function findByUserId(int $userId): ?array {
+        self::ensureNativeLanguageColumn();
+
         $stmt = db()->prepare("SELECT * FROM profiles WHERE user_id = ?");
         $stmt->execute([$userId]);
         $profile = $stmt->fetch();
         
         if ($profile && $profile['language_progress']) {
             $profile['language_progress'] = json_decode($profile['language_progress'], true);
+        }
+
+        if ($profile && empty($profile['native_language'])) {
+            $profile['native_language'] = 'english';
         }
         
         return $profile ?: null;
@@ -26,10 +62,18 @@ class Profile {
     /**
      * Create profile for new user
      */
-    public static function create(int $userId, string $role = 'Whisper', int $credits = null): bool {
+    public static function create(int $userId, string $role = 'Whisper', ?int $credits = null): bool {
         $credits = $credits ?? DEFAULT_CREDITS;
         $defaultProgress = json_encode([]);
-        
+
+        if (self::ensureNativeLanguageColumn()) {
+            $stmt = db()->prepare(
+                "INSERT INTO profiles (user_id, role, credits, current_language, native_language, language_progress) 
+                 VALUES (?, ?, ?, 'indonesian', 'english', ?)"
+            );
+            return $stmt->execute([$userId, $role, $credits, $defaultProgress]);
+        }
+
         $stmt = db()->prepare(
             "INSERT INTO profiles (user_id, role, credits, current_language, language_progress) 
              VALUES (?, ?, ?, 'indonesian', ?)"
@@ -41,6 +85,8 @@ class Profile {
      * Update current language and track progress
      */
     public static function updateLanguage(int $userId, string $language): bool {
+        self::ensureNativeLanguageColumn();
+
         $profile = self::findByUserId($userId);
         
         if (!$profile) {
@@ -69,6 +115,20 @@ class Profile {
              WHERE user_id = ?"
         );
         return $stmt->execute([$language, json_encode($progress), $userId]);
+    }
+
+    /**
+     * Update the user's base/native language
+     */
+    public static function updateNativeLanguage(int $userId, string $language): bool {
+        if (!self::ensureNativeLanguageColumn()) {
+            return false;
+        }
+
+        $stmt = db()->prepare(
+            "UPDATE profiles SET native_language = ?, updated_at = NOW() WHERE user_id = ?"
+        );
+        return $stmt->execute([$language, $userId]);
     }
     
     /**

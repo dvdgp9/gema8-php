@@ -144,12 +144,13 @@ class ApiController extends Controller {
         
         $question = trim($input['question'] ?? '');
         $language = sanitize($input['language'] ?? 'indonesian');
+        $responseLanguage = sanitize($input['response_language'] ?? (currentProfile()['native_language'] ?? 'english'));
         
         if (empty($question)) {
             $this->json(['error' => 'Question is required'], 400);
         }
         
-        if (!isValidLanguage($language)) {
+        if (!isValidLanguage($language) || !isValidLanguage($responseLanguage)) {
             $this->json(['error' => 'Invalid language'], 400);
         }
         
@@ -159,7 +160,7 @@ class ApiController extends Controller {
         }
         
         // Ask Gemini
-        $answer = Gemini::askLanguageQuestion($question, $language);
+        $answer = Gemini::askLanguageQuestion($question, $language, $responseLanguage);
         
         if (!$answer) {
             $this->json(['error' => 'Failed to get answer'], 500);
@@ -184,13 +185,14 @@ class ApiController extends Controller {
         
         $situation = trim($input['situation'] ?? '');
         $targetLanguage = sanitize($input['target_language'] ?? 'indonesian');
+        $translationLanguage = sanitize($input['translation_language'] ?? (currentProfile()['native_language'] ?? 'english'));
         
         if (empty($situation)) {
             $this->json(['error' => 'Situation description is required'], 400);
         }
         
-        if (!isValidLanguage($targetLanguage)) {
-            $this->json(['error' => 'Invalid target language'], 400);
+        if (!isValidLanguage($targetLanguage) || !isValidLanguage($translationLanguage)) {
+            $this->json(['error' => 'Invalid target or base language'], 400);
         }
         
         // Check credits
@@ -199,7 +201,7 @@ class ApiController extends Controller {
         }
         
         // Generate via Gemini
-        $result = Gemini::generateWhisper($situation, $targetLanguage);
+        $result = Gemini::generateWhisper($situation, $targetLanguage, $translationLanguage);
         
         if (!$result) {
             $this->json(['error' => 'Failed to generate phrases'], 500);
@@ -236,13 +238,14 @@ class ApiController extends Controller {
         $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
         
         $language = sanitize($input['language'] ?? '');
+        $outputLanguage = sanitize($input['output_language'] ?? (currentProfile()['native_language'] ?? 'english'));
         
-        if (empty($language) || !isValidLanguage($language)) {
+        if (empty($language) || !isValidLanguage($language) || !isValidLanguage($outputLanguage)) {
             $this->json(['error' => 'Invalid language'], 400);
         }
         
         // Check for existing tip today
-        $existingTip = Tip::getTodaysTip(userId(), $language);
+        $existingTip = Tip::getTodaysTip(userId(), $language, $outputLanguage);
         
         if ($existingTip) {
             $this->json([
@@ -264,7 +267,7 @@ class ApiController extends Controller {
         $recentTopics = Tip::getRecentSummaries(userId(), $language);
         
         // Generate tip
-        $tip = Gemini::generateDailyTip($language, $daysActive, $recentTopics);
+        $tip = Gemini::generateDailyTip($language, $daysActive, $recentTopics, $outputLanguage);
         
         if (!$tip) {
             $this->json(['error' => 'Failed to generate tip'], 500);
@@ -272,7 +275,7 @@ class ApiController extends Controller {
         
         // Store tip
         $briefSummary = strtok($tip, '.') . '.';
-        Tip::store(userId(), $language, $tip, $briefSummary);
+        Tip::store(userId(), $language, $tip, $briefSummary, $outputLanguage);
         
         $this->json([
             'tip' => $tip,

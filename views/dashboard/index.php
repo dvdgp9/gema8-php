@@ -53,30 +53,46 @@
                             <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center" id="translatorIcon">
                                 <i data-lucide="languages" class="h-5 w-5 text-white"></i>
                             </div>
-                            <h3 class="font-bold text-white text-lg">Translator</h3>
-                        </div>
-                        
-                        <!-- Direction Toggle -->
-                        <div class="flex bg-white/20 backdrop-blur rounded-lg p-1">
-                            <button 
-                                id="dirToTarget" 
-                                onclick="setDirection('to-target')"
-                                class="px-3 py-1.5 text-xs rounded-md bg-white text-primary-600 font-semibold transition-all"
-                            >
-                                EN → <span id="targetLangShort"><?= e(getLanguageShortName($currentLanguage)) ?></span>
-                            </button>
-                            <button 
-                                id="dirFromTarget" 
-                                onclick="setDirection('from-target')"
-                                class="px-3 py-1.5 text-xs rounded-md text-white/80 font-medium transition-all hover:text-white"
-                            >
-                                <span id="sourceLangShort"><?= e(getLanguageShortName($currentLanguage)) ?></span> → EN
-                            </button>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">Translator</h3>
+                                <p class="text-white/75 text-sm">
+                                    Bridge between <?= e(getLanguageName($nativeLanguage)) ?> and <?= e(getLanguageName($currentLanguage)) ?>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="p-5">
+                    <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-end mb-4">
+                        <div>
+                            <label for="sourceLanguageSelect" class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                                Input
+                            </label>
+                            <select id="sourceLanguageSelect" class="input !py-3" onchange="handleLanguageSelectionChange('source')">
+                                <option value="<?= e($nativeLanguage) ?>"><?= e(getLanguageName($nativeLanguage)) ?></option>
+                                <option value="<?= e($currentLanguage) ?>"><?= e(getLanguageName($currentLanguage)) ?></option>
+                            </select>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="swapTranslationLanguages()"
+                            class="w-11 h-11 rounded-xl bg-primary-50 hover:bg-primary-100 text-primary-600 flex items-center justify-center transition-colors"
+                            title="Swap languages"
+                        >
+                            <i data-lucide="arrow-left-right" class="h-4 w-4"></i>
+                        </button>
+                        <div>
+                            <label for="targetLanguageSelect" class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                                Output
+                            </label>
+                            <select id="targetLanguageSelect" class="input !py-3" onchange="handleLanguageSelectionChange('target')">
+                                <option value="<?= e($nativeLanguage) ?>"><?= e(getLanguageName($nativeLanguage)) ?></option>
+                                <option value="<?= e($currentLanguage) ?>"><?= e(getLanguageName($currentLanguage)) ?></option>
+                            </select>
+                        </div>
+                    </div>
+
                     <textarea 
                         id="translateInput" 
                         class="input min-h-28 resize-none mb-4" 
@@ -145,7 +161,7 @@
                     <textarea 
                         id="questionInput" 
                         class="input min-h-28 resize-none mb-4" 
-                        placeholder="Ask anything about <?= e(getLanguageName($currentLanguage)) ?>..."
+                        placeholder="Ask anything about <?= e(getLanguageName($currentLanguage)) ?> and get the answer in <?= e(getLanguageName($nativeLanguage)) ?>..."
                     ></textarea>
                     
                     <div id="answerResult" class="hidden mb-4 p-4 bg-gradient-to-br from-violet-50 to-slate-50 rounded-xl border border-violet-100">
@@ -193,7 +209,7 @@
                         type="text" 
                         id="situationInput" 
                         class="input flex-1" 
-                        placeholder="Describe your situation (e.g., 'ordering coffee at a cafe')"
+                        placeholder="Describe your situation in <?= e(getLanguageName($nativeLanguage)) ?> or <?= e(getLanguageName($currentLanguage)) ?>"
                     >
                     <button 
                         id="whisperBtn"
@@ -228,10 +244,12 @@
 
 <script>
     // State
-    let translationDirection = 'to-target';
     let ephemeralMode = false;
-    let lastTargetLanguage = '<?= e($currentLanguage) ?>';
     const currentLanguage = '<?= e($currentLanguage) ?>';
+    const nativeLanguage = '<?= e($nativeLanguage) ?>';
+    let sourceLanguage = nativeLanguage;
+    let targetLanguage = currentLanguage;
+    let lastTargetLanguage = targetLanguage;
     
     // Play translation audio using ElevenLabs TTS
     function playTranslation() {
@@ -259,11 +277,17 @@
         <?php else: ?>
         loadDailyTip();
         <?php endif; ?>
+
+        syncTranslationSelectors();
+        updateTranslatePlaceholder();
     });
     
     async function loadDailyTip() {
         try {
-            const result = await api('<?= BASE_URL ?>/api/generate-tip', { language: currentLanguage });
+            const result = await api('<?= BASE_URL ?>/api/generate-tip', {
+                language: currentLanguage,
+                output_language: nativeLanguage
+            });
             document.getElementById('dailyTipContent').innerHTML = 
                 `<p class="text-slate-700 leading-relaxed">${formatMarkdown(result.tip)}</p>`;
             updateCredits();
@@ -273,22 +297,50 @@
         }
     }
     
-    function setDirection(dir) {
-        translationDirection = dir;
-        const toTarget = document.getElementById('dirToTarget');
-        const fromTarget = document.getElementById('dirFromTarget');
-        
-        if (dir === 'to-target') {
-            toTarget.classList.add('bg-white', 'text-primary-600', 'font-semibold');
-            toTarget.classList.remove('text-white/80');
-            fromTarget.classList.remove('bg-white', 'text-primary-600', 'font-semibold');
-            fromTarget.classList.add('text-white/80');
-        } else {
-            fromTarget.classList.add('bg-white', 'text-primary-600', 'font-semibold');
-            fromTarget.classList.remove('text-white/80');
-            toTarget.classList.remove('bg-white', 'text-primary-600', 'font-semibold');
-            toTarget.classList.add('text-white/80');
+    function syncTranslationSelectors() {
+        const sourceSelect = document.getElementById('sourceLanguageSelect');
+        const targetSelect = document.getElementById('targetLanguageSelect');
+
+        if (sourceSelect) sourceSelect.value = sourceLanguage;
+        if (targetSelect) targetSelect.value = targetLanguage;
+    }
+
+    function getLanguageDisplayName(code) {
+        return code === nativeLanguage
+            ? '<?= e(getLanguageName($nativeLanguage)) ?>'
+            : '<?= e(getLanguageName($currentLanguage)) ?>';
+    }
+
+    function updateTranslatePlaceholder() {
+        const input = document.getElementById('translateInput');
+        if (!input) return;
+
+        input.placeholder = `Write in ${getLanguageDisplayName(sourceLanguage)} and Gema∞ will echo it into ${getLanguageDisplayName(targetLanguage)}...`;
+    }
+
+    function swapTranslationLanguages() {
+        [sourceLanguage, targetLanguage] = [targetLanguage, sourceLanguage];
+        syncTranslationSelectors();
+        updateTranslatePlaceholder();
+    }
+
+    function handleLanguageSelectionChange(changedField) {
+        const sourceSelect = document.getElementById('sourceLanguageSelect');
+        const targetSelect = document.getElementById('targetLanguageSelect');
+
+        sourceLanguage = sourceSelect.value;
+        targetLanguage = targetSelect.value;
+
+        if (sourceLanguage === targetLanguage) {
+            if (changedField === 'source') {
+                targetLanguage = sourceLanguage === nativeLanguage ? currentLanguage : nativeLanguage;
+            } else {
+                sourceLanguage = targetLanguage === nativeLanguage ? currentLanguage : nativeLanguage;
+            }
         }
+
+        syncTranslationSelectors();
+        updateTranslatePlaceholder();
     }
     
     function toggleEphemeral() {
@@ -317,9 +369,6 @@
         btn.innerHTML = '<span class="spinner mr-2"></span>Echoing...';
         
         try {
-            const sourceLanguage = translationDirection === 'to-target' ? 'english' : currentLanguage;
-            const targetLanguage = translationDirection === 'to-target' ? currentLanguage : 'english';
-            
             const result = await api('<?= BASE_URL ?>/api/translate', {
                 text,
                 source_language: sourceLanguage,
@@ -373,7 +422,8 @@
         try {
             const result = await api('<?= BASE_URL ?>/api/ask-question', {
                 question,
-                language: currentLanguage
+                language: currentLanguage,
+                response_language: nativeLanguage
             });
             
             document.getElementById('answerText').innerHTML = formatMarkdown(result.answer);
@@ -403,7 +453,8 @@
         try {
             const result = await api('<?= BASE_URL ?>/api/generate-whisper', {
                 situation,
-                target_language: currentLanguage
+                target_language: currentLanguage,
+                translation_language: nativeLanguage
             });
             
             document.getElementById('whisperTitle').textContent = result.title;

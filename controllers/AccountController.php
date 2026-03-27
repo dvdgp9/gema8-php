@@ -57,6 +57,31 @@ class AccountController extends Controller {
         flash('success', 'Language updated to ' . getLanguageName($language));
         redirect($_SERVER['HTTP_REFERER'] ?? '/');
     }
+
+    /**
+     * Update the user's base/native language
+     */
+    public function updateNativeLanguage(): void {
+        requireAuth();
+        requireCsrf();
+
+        $language = sanitize($_POST['language'] ?? '');
+
+        if (!isValidLanguage($language)) {
+            flash('error', 'Invalid base language selected');
+            redirect('/account');
+        }
+
+        if (!Profile::updateNativeLanguage(userId(), $language)) {
+            flash('error', 'Failed to update base language');
+            redirect('/account');
+        }
+
+        refreshProfile();
+
+        flash('success', 'Base language updated to ' . getLanguageName($language));
+        redirect($_SERVER['HTTP_REFERER'] ?? '/account');
+    }
     
     /**
      * Delete account

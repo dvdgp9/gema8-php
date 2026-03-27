@@ -45,7 +45,54 @@
                         <i data-lucide="globe" class="h-5 w-5 text-white"></i>
                     </div>
                     <p class="text-xl font-bold text-slate-800"><?= e(getLanguageName($profile['current_language'])) ?></p>
-                    <p class="text-sm text-slate-500">Current Language</p>
+                    <p class="text-sm text-slate-500">Learning Language</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i data-lucide="languages" class="h-5 w-5 text-primary-500"></i>
+                Language Setup
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form action="<?= BASE_URL ?>/account/update-native-language" method="POST" class="p-4 bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-100">
+                    <?= csrfField() ?>
+                    <label for="native_language" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Your Base Language
+                    </label>
+                    <p class="text-sm text-slate-500 mb-3">
+                        Tips, meanings and explanations will use this language.
+                    </p>
+                    <select id="native_language" name="language" class="input mb-3">
+                        <option value="english" <?= ($profile['native_language'] ?? 'english') === 'english' ? 'selected' : '' ?>>English</option>
+                        <?php foreach ($supportedLanguages as $code => $name): ?>
+                        <option value="<?= e($code) ?>" <?= ($profile['native_language'] ?? 'english') === $code ? 'selected' : '' ?>>
+                            <?= e($name) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit" class="btn btn-secondary w-full justify-center">
+                        Save Base Language
+                    </button>
+                </form>
+
+                <div class="p-4 bg-gradient-to-br from-primary-50 to-white rounded-xl border border-primary-100">
+                    <p class="text-sm font-semibold text-slate-700 mb-2">How Gema∞ uses your languages</p>
+                    <div class="space-y-3 text-sm text-slate-600">
+                        <div class="flex items-start gap-2">
+                            <i data-lucide="target" class="h-4 w-4 text-primary-500 mt-0.5"></i>
+                            <p><strong>Learning:</strong> <?= e(getLanguageName($profile['current_language'])) ?></p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i data-lucide="house" class="h-4 w-4 text-emerald-500 mt-0.5"></i>
+                            <p><strong>Base:</strong> <?= e(getLanguageName($profile['native_language'] ?? 'english')) ?></p>
+                        </div>
+                        <p class="pt-1 text-slate-500">
+                            Translator, tips, whispers and language help now pivot between these two instead of assuming English.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

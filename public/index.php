@@ -62,6 +62,7 @@ $routes = [
         '/auth/reset-password' => 'AuthController@resetPassword',
         '/account/delete' => 'AccountController@delete',
         '/account/update-language' => 'AccountController@updateLanguage',
+        '/account/update-native-language' => 'AccountController@updateNativeLanguage',
         
         // API endpoints
         '/api/translate' => 'ApiController@translate',
