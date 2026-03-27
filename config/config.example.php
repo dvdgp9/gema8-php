@@ -41,7 +41,9 @@ define('DB_CHARSET', 'utf8mb4');
 // ===========================================
 // API KEYS
 // ===========================================
-// Get your key from: https://aistudio.google.com/
+// Get your key from: https://openrouter.ai/
+define('OPENROUTER_API_KEY', 'YOUR_OPENROUTER_API_KEY');
+// Legacy direct Gemini key (optional, not used if OpenRouter is configured)
 define('GEMINI_API_KEY', 'YOUR_GEMINI_API_KEY');
 
 // ===========================================

@@ -8,96 +8,68 @@ if (!defined('GEMA8')) {
 }
 
 class Gemini {
-    private const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
-    private const PRIMARY_MODEL = 'gemini-3.1-flash-lite-preview';
-    private const FALLBACK_MODEL = 'gemini-2.5-flash';
-
+    private const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    private const MODEL = 'google/gemini-2.5-flash';
+    
     /**
-     * Build the generateContent endpoint URL for a model
+     * Send request via OpenRouter API (OpenAI-compatible)
      */
-    private static function getApiUrl(string $model): string {
-        return self::API_BASE_URL . $model . ':generateContent';
-    }
-
-    /**
-     * Send a request to a specific Gemini model
-     */
-    private static function requestToModel(string $model, string $prompt): ?string {
-        $apiKey = GEMINI_API_KEY;
-
-        $url = self::getApiUrl($model) . '?key=' . $apiKey;
-
+    private static function request(string $prompt): ?string {
+        $apiKey = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
+        
+        if (empty($apiKey) || $apiKey === 'YOUR_OPENROUTER_API_KEY') {
+            error_log('OpenRouter API key not configured');
+            return null;
+        }
+        
         $data = [
-            'contents' => [
-                [
-                    'parts' => [
-                        ['text' => $prompt]
-                    ]
-                ]
+            'model' => self::MODEL,
+            'messages' => [
+                ['role' => 'user', 'content' => $prompt]
             ],
-            'generationConfig' => [
-                'temperature' => 0.7,
-                'topK' => 40,
-                'topP' => 0.95,
-                'maxOutputTokens' => 2048,
-            ]
+            'temperature' => 0.7,
+            'top_p' => 0.95,
+            'max_tokens' => 2048,
         ];
-
-        $ch = curl_init($url);
+        
+        $ch = curl_init(self::OPENROUTER_URL);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json'
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey,
+                'HTTP-Referer: ' . BASE_URL,
+                'X-Title: Gema8'
             ],
             CURLOPT_TIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true
         ]);
-
+        
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
-
-        if ($error) {
-            error_log("Gemini API cURL error for {$model}: " . $error);
-            return null;
-        }
-
-        if ($httpCode !== 200) {
-            error_log("Gemini API HTTP error for {$model}: " . $httpCode . ' - ' . $response);
-            return null;
-        }
-
-        $result = json_decode($response, true);
-
-        if (!isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-            error_log("Gemini API unexpected response for {$model}: " . $response);
-            return null;
-        }
-
-        return $result['candidates'][0]['content']['parts'][0]['text'];
-    }
-    
-    /**
-     * Send request to Gemini API
-     */
-    private static function request(string $prompt): ?string {
-        $apiKey = GEMINI_API_KEY;
         
-        if (empty($apiKey) || $apiKey === 'YOUR_GEMINI_API_KEY') {
-            error_log('Gemini API key not configured');
+        if ($error) {
+            error_log('OpenRouter cURL error: ' . $error);
             return null;
         }
-
-        $result = self::requestToModel(self::PRIMARY_MODEL, $prompt);
-        if ($result !== null) {
-            return $result;
+        
+        if ($httpCode !== 200) {
+            error_log('OpenRouter HTTP error: ' . $httpCode . ' - ' . $response);
+            return null;
         }
-
-        error_log('Falling back to ' . self::FALLBACK_MODEL . ' after primary Gemini model failure.');
-        return self::requestToModel(self::FALLBACK_MODEL, $prompt);
+        
+        $result = json_decode($response, true);
+        
+        if (!isset($result['choices'][0]['message']['content'])) {
+            error_log('OpenRouter unexpected response: ' . $response);
+            return null;
+        }
+        
+        return $result['choices'][0]['message']['content'];
     }
     
     /**
