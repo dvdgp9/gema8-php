@@ -223,6 +223,8 @@ PROMPT;
         $prompt = <<<PROMPT
 You are a real-time conversation translator helping a traveler communicate with a local person in {$targetLanguage}.
 
+IMPORTANT CONTEXT: The conversation history may appear incomplete or one-sided. This is normal — the traveler often understands what the other person says without needing a translation, so they only input messages they need help translating. Do NOT assume missing messages mean a broken conversation. Infer context naturally from whatever messages are available.
+
 {$contextBlock}Now translate the following message from {$fromLang} to {$toLang}.
 
 Translation settings:

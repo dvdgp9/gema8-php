@@ -443,11 +443,13 @@ class ApiController extends Controller {
         );
         
         if (!$result) {
+            error_log('Conversation: translation failed for conversation ' . $conversationId);
             $this->json(['error' => 'Translation failed'], 500); return;
         }
         
         // Deduct credits
         if (!deductCredits(CREDIT_COST_CONVERSATION)) {
+            error_log('Conversation: credit deduction failed for user ' . userId());
             $this->json(['error' => 'Failed to process credits'], 500); return;
         }
         
@@ -457,14 +459,23 @@ class ApiController extends Controller {
             $direction,
             $text,
             $result['translated_text'],
-            $result['cultural_note']
+            $result['cultural_note'] ?? null
         );
         
         if (!$message) {
+            error_log('Conversation: failed to save message. Direction: ' . $direction . ', ConvID: ' . $conversationId);
             $this->json(['error' => 'Failed to save message'], 500); return;
         }
         
-        $this->json($message);
+        $this->json([
+            'id' => (int) $message['id'],
+            'conversation_id' => (int) $message['conversation_id'],
+            'direction' => $message['direction'],
+            'original_text' => $message['original_text'],
+            'translated_text' => $message['translated_text'],
+            'cultural_note' => $message['cultural_note'] ?? null,
+            'created_at' => $message['created_at']
+        ]);
     }
     
     /**

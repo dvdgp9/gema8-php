@@ -128,7 +128,7 @@ $targetLangShort = getLanguageShortName($conversation['target_language']);
         </div>
         
         <!-- Sticky Input Area -->
-        <div class="sticky bottom-0 bg-white/80 backdrop-blur-lg border-t border-slate-100 px-4 py-3 pb-safe">
+        <div class="sticky bottom-0 bg-white/80 backdrop-blur-lg border-t border-slate-100 px-4 pt-3 pb-4" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
             <!-- Direction Toggle -->
             <div class="flex items-center justify-center gap-2 mb-3">
                 <button 
