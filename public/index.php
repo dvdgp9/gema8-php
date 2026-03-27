@@ -53,6 +53,7 @@ $routes = [
         '/account' => 'AccountController@index',
         '/admin' => 'AdminController@index',
         '/admin/user' => 'AdminController@editUser',
+        '/api/session-status' => 'ApiController@sessionStatus',
     ],
     'POST' => [
         '/auth/login' => 'AuthController@login',

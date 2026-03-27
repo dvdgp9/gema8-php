@@ -10,6 +10,25 @@ if (!defined('GEMA8')) {
 
 class ApiController extends Controller {
     /**
+     * Return the current auth/session status and active CSRF token
+     */
+    public function sessionStatus(): void {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+
+        $payload = [
+            'authenticated' => isLoggedIn(),
+            'csrf_token' => csrfToken(),
+        ];
+
+        if (isLoggedIn()) {
+            $payload['user_id'] = userId();
+        }
+
+        $this->json($payload);
+    }
+
+    /**
      * Translate text
      */
     public function translate(): void {

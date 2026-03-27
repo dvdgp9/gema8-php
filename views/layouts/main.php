@@ -401,7 +401,8 @@
         lucide.createIcons();
         
         // Global CSRF token
-        const csrfToken = '<?= csrfToken() ?>';
+        let csrfToken = '<?= e($csrfToken) ?>';
+        let sessionRefreshPromise = null;
         
         // Global BASE_URL for TTS module
         window.BASE_URL = '<?= BASE_URL ?>';
@@ -415,24 +416,104 @@
             }, 4000);
         });
         
-        // API helper
-        async function api(endpoint, data = {}) {
-            const response = await fetch(endpoint, {
+        async function refreshSessionStatus() {
+            if (sessionRefreshPromise) {
+                return sessionRefreshPromise;
+            }
+            
+            sessionRefreshPromise = fetch('<?= BASE_URL ?>/api/session-status', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                },
+                cache: 'no-store',
+                credentials: 'same-origin'
+            })
+                .then(async response => {
+                    let result = {};
+                    
+                    try {
+                        result = await response.json();
+                    } catch (error) {
+                        result = {};
+                    }
+                    
+                    if (!response.ok || !result.csrf_token) {
+                        throw new Error(result.error || 'Unable to refresh session');
+                    }
+                    
+                    csrfToken = result.csrf_token;
+                    return result;
+                })
+                .finally(() => {
+                    sessionRefreshPromise = null;
+                });
+            
+            return sessionRefreshPromise;
+        }
+        
+        async function apiRequest(endpoint, data = {}) {
+            return fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({...data, csrf_token: csrfToken})
+                body: JSON.stringify({...data, csrf_token: csrfToken}),
+                credentials: 'same-origin'
             });
+        }
+        
+        // API helper
+        async function api(endpoint, data = {}, retried = false) {
+            const response = await apiRequest(endpoint, data);
+            let result = {};
             
-            const result = await response.json();
+            try {
+                result = await response.json();
+            } catch (error) {
+                result = {};
+            }
             
             if (!response.ok) {
+                const isRecoverableAuthError =
+                    (response.status === 401 && result.error === 'Authentication required') ||
+                    (response.status === 403 && result.error === 'Invalid security token');
+                
+                if (!retried && isRecoverableAuthError) {
+                    try {
+                        const session = await refreshSessionStatus();
+                        
+                        if (!session.authenticated) {
+                            throw new Error('Your session expired. Please log in again.');
+                        }
+                        
+                        return api(endpoint, data, true);
+                    } catch (refreshError) {
+                        throw new Error(refreshError.message || 'Your session expired. Please refresh and try again.');
+                    }
+                }
+                
+                if (response.status === 401) {
+                    throw new Error('Your session expired. Please log in again.');
+                }
+                
+                if (response.status === 403 && result.error === 'Invalid security token') {
+                    throw new Error('Your session changed. Please refresh and try again.');
+                }
+                
                 throw new Error(result.error || 'Request failed');
             }
             
             return result;
+        }
+        
+        function refreshSessionInBackground() {
+            refreshSessionStatus().catch(() => {
+                // Ignore background refresh failures. The next action will surface a helpful error if needed.
+            });
         }
         
         // Register Service Worker
@@ -443,6 +524,20 @@
                     .catch(err => console.log('SW registration failed:', err));
             });
         }
+        
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refreshSessionInBackground();
+            }
+        });
+        
+        window.addEventListener('pageshow', () => {
+            refreshSessionInBackground();
+        });
+        
+        window.addEventListener('online', () => {
+            refreshSessionInBackground();
+        });
         
         // Show toast
         function showToast(message, type = 'success') {

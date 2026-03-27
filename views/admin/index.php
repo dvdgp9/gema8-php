@@ -218,6 +218,7 @@
 
 <script>
     lucide.createIcons();
+    const adminCsrfToken = '<?= e($csrfToken) ?>';
     
     async function quickAddCredits(userId) {
         const amount = prompt('Enter amount of credits to add:', '500');
@@ -228,9 +229,10 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': adminCsrfToken
                 },
-                body: `user_id=${userId}&amount=${parseInt(amount)}`
+                body: `user_id=${userId}&amount=${parseInt(amount)}&csrf_token=${encodeURIComponent(adminCsrfToken)}`
             });
             
             const data = await response.json();

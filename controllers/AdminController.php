@@ -146,6 +146,7 @@ class AdminController extends Controller {
      */
     public function addCredits(): void {
         requireOracle();
+        requireCsrf();
         
         if (!isAjax()) {
             redirect('/admin');
