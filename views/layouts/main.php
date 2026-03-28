@@ -309,16 +309,17 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(99, 102, 241, 0.1);
-            padding: 0.5rem 1rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.15);
+            padding: 0.5rem 0.75rem;
+            padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 40;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
         }
         
         @media (min-width: 768px) {
@@ -329,23 +330,25 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.25rem;
-            padding: 0.5rem 1rem;
+            gap: 0.2rem;
+            padding: 0.4rem 0.75rem;
             border-radius: 0.75rem;
-            font-size: 0.625rem;
-            font-weight: 500;
-            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #475569;
             transition: all 0.2s ease;
+            text-decoration: none;
         }
         
         .mobile-nav-item:hover,
         .mobile-nav-item.active {
             color: #4f46e5;
-            background: rgba(99, 102, 241, 0.08);
+            background: rgba(99, 102, 241, 0.1);
         }
         
         .mobile-nav-item.active {
-            color: #4f46e5;
+            color: #4338ca;
+            font-weight: 700;
         }
         
         /* Badge */
