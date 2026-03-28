@@ -37,11 +37,13 @@ class ConversationMessage {
             return null;
         }
         
+        $insertId = (int) db()->lastInsertId();
+        
         // Touch conversation updated_at
         $stmtUpdate = db()->prepare("UPDATE conversations SET updated_at = NOW() WHERE id = ?");
         $stmtUpdate->execute([$conversationId]);
         
-        return self::find((int) db()->lastInsertId());
+        return self::find($insertId);
     }
     
     /**
