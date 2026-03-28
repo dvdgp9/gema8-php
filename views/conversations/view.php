@@ -56,29 +56,29 @@ $targetLangShort = getLanguageShortName($conversation['target_language']);
                         <span><?= e($msg['cultural_note']) ?></span>
                     </div>
                     <?php endif; ?>
-                    <div class="flex items-center justify-end gap-1">
+                    <div class="flex items-center justify-end gap-1.5">
                         <button 
                             onclick="copyText(this, '<?= e(addslashes($msg['translated_text'])) ?>')"
-                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
                             title="Copy translation"
                         >
-                            <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                            <i data-lucide="copy" class="h-4 w-4"></i>
                         </button>
                         <button 
                             onclick="playTTS(this, '<?= e(addslashes($msg['translated_text'])) ?>', '<?= e($conversation['target_language']) ?>')"
-                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
                             title="Listen"
                         >
-                            <i data-lucide="volume-2" class="h-3.5 w-3.5"></i>
+                            <i data-lucide="volume-2" class="h-4 w-4"></i>
                         </button>
                         <button 
                             onclick="deleteMessage(<?= $msg['id'] ?>)"
-                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
                             title="Delete"
                         >
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                            <i data-lucide="trash-2" class="h-4 w-4"></i>
                         </button>
-                        <span class="text-xs text-slate-300 ml-1"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
+                        <span class="text-xs text-slate-400 ml-1 font-medium"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
                     </div>
                 </div>
             </div>
@@ -96,28 +96,28 @@ $targetLangShort = getLanguageShortName($conversation['target_language']);
                         <span><?= e($msg['cultural_note']) ?></span>
                     </div>
                     <?php endif; ?>
-                    <div class="flex items-center justify-start gap-1">
-                        <span class="text-xs text-slate-300 mr-1"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
+                    <div class="flex items-center justify-start gap-1.5">
+                        <span class="text-xs text-slate-400 mr-1 font-medium"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
                         <button 
                             onclick="copyText(this, '<?= e(addslashes($msg['translated_text'])) ?>')"
-                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
                             title="Copy translation"
                         >
-                            <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                            <i data-lucide="copy" class="h-4 w-4"></i>
                         </button>
                         <button 
                             onclick="playTTS(this, '<?= e(addslashes($msg['original_text'])) ?>', '<?= e($conversation['target_language']) ?>')"
-                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
                             title="Listen in <?= e($targetLangName) ?>"
                         >
-                            <i data-lucide="volume-2" class="h-3.5 w-3.5"></i>
+                            <i data-lucide="volume-2" class="h-4 w-4"></i>
                         </button>
                         <button 
                             onclick="deleteMessage(<?= $msg['id'] ?>)"
-                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
                             title="Delete"
                         >
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                            <i data-lucide="trash-2" class="h-4 w-4"></i>
                         </button>
                     </div>
                 </div>
@@ -378,19 +378,19 @@ $targetLangShort = getLanguageShortName($conversation['target_language']);
             
             if (direction === 'me') {
                 actionsHtml = `
-                    <div class="flex items-center justify-end gap-1">
-                        <button onclick="copyText(this, '${copyTxt}')" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all" title="Copy"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="playTTS(this, '${ttsTxt}', '${TARGET_LANG}')" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-all" title="Listen"><i data-lucide="volume-2" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="deleteMessage(${msgId})" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all" title="Delete"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
-                        <span class="text-xs text-slate-300 ml-1">${time}</span>
+                    <div class="flex items-center justify-end gap-1.5">
+                        <button onclick="copyText(this, '${copyTxt}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all" title="Copy"><i data-lucide="copy" class="h-4 w-4"></i></button>
+                        <button onclick="playTTS(this, '${ttsTxt}', '${TARGET_LANG}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all" title="Listen"><i data-lucide="volume-2" class="h-4 w-4"></i></button>
+                        <button onclick="deleteMessage(${msgId})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Delete"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
+                        <span class="text-xs text-slate-400 ml-1 font-medium">${time}</span>
                     </div>`;
             } else {
                 actionsHtml = `
-                    <div class="flex items-center justify-start gap-1">
-                        <span class="text-xs text-slate-300 mr-1">${time}</span>
-                        <button onclick="copyText(this, '${copyTxt}')" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all" title="Copy"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="playTTS(this, '${ttsTxt}', '${TARGET_LANG}')" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-all" title="Listen"><i data-lucide="volume-2" class="h-3.5 w-3.5"></i></button>
-                        <button onclick="deleteMessage(${msgId})" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all" title="Delete"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
+                    <div class="flex items-center justify-start gap-1.5">
+                        <span class="text-xs text-slate-400 mr-1 font-medium">${time}</span>
+                        <button onclick="copyText(this, '${copyTxt}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all" title="Copy"><i data-lucide="copy" class="h-4 w-4"></i></button>
+                        <button onclick="playTTS(this, '${ttsTxt}', '${TARGET_LANG}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all" title="Listen"><i data-lucide="volume-2" class="h-4 w-4"></i></button>
+                        <button onclick="deleteMessage(${msgId})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Delete"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
                     </div>`;
             }
         }
