@@ -4,6 +4,8 @@
  */
 $targetLangName = getLanguageName($conversation['target_language']);
 $targetLangShort = getLanguageShortName($conversation['target_language']);
+$nativeLangName = getLanguageName($nativeLanguage ?? 'english');
+$nativeLangShort = getLanguageShortName($nativeLanguage ?? 'english');
 ?>
 <main class="flex min-h-screen flex-col items-center">
     <div class="w-full max-w-2xl flex flex-col min-h-screen">
@@ -169,7 +171,7 @@ $targetLangShort = getLanguageShortName($conversation['target_language']);
             </div>
             <div class="text-center mt-2">
                 <span class="text-xs text-slate-400" id="inputHint">
-                    EN → <?= e($targetLangShort) ?> · 1 credit per message
+                    <?= e($nativeLangShort) ?> → <?= e($targetLangShort) ?> · 1 credit per message
                 </span>
             </div>
         </div>
@@ -259,6 +261,8 @@ $targetLangShort = getLanguageShortName($conversation['target_language']);
     const CONV_ID = <?= (int) $conversation['id'] ?>;
     const TARGET_LANG = '<?= e($conversation['target_language']) ?>';
     const TARGET_LANG_SHORT = '<?= e($targetLangShort) ?>';
+    const NATIVE_LANG = '<?= e($nativeLanguage ?? 'english') ?>';
+    const NATIVE_LANG_SHORT = '<?= e($nativeLangShort) ?>';
     let currentDirection = 'me';
     
     const currentSettings = {
@@ -296,12 +300,12 @@ $targetLangShort = getLanguageShortName($conversation['target_language']);
             dirMe.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all bg-blue-500 text-white shadow-sm';
             dirThem.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-500';
             messageInput.placeholder = 'Type in English...';
-            hint.textContent = 'EN → ' + TARGET_LANG_SHORT + ' · 1 credit per message';
+            hint.textContent = NATIVE_LANG_SHORT + ' → ' + TARGET_LANG_SHORT + ' · 1 credit per message';
         } else {
             dirThem.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all bg-slate-500 text-white shadow-sm';
             dirMe.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-500';
             messageInput.placeholder = 'Type what they said in ' + '<?= e($targetLangName) ?>' + '...';
-            hint.textContent = TARGET_LANG_SHORT + ' → EN · 1 credit per message';
+            hint.textContent = TARGET_LANG_SHORT + ' → ' + NATIVE_LANG_SHORT + ' · 1 credit per message';
         }
     }
     

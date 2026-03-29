@@ -60,7 +60,8 @@ class ConversationController extends Controller {
             'title' => e($conversation['title']) . ' - Conversation',
             'conversation' => $conversation,
             'messages' => $messages,
-            'currentLanguage' => $profile['current_language'] ?? 'indonesian'
+            'currentLanguage' => $profile['current_language'] ?? 'indonesian',
+            'nativeLanguage' => $profile['native_language'] ?? 'english'
         ]);
     }
     

@@ -406,6 +406,9 @@ class ApiController extends Controller {
         if (!$conversation) {
             $this->json(['error' => 'Conversation not found'], 404); return;
         }
+
+        $profile = currentProfile();
+        $userLanguage = $profile['native_language'] ?? 'english';
         
         // Check credits
         if (!hasCredits(CREDIT_COST_CONVERSATION)) {
@@ -435,6 +438,7 @@ class ApiController extends Controller {
             $text,
             $direction,
             $conversation['target_language'],
+            $userLanguage,
             $conversation['level'],
             $conversation['tone'],
             $conversation['fidelity'],

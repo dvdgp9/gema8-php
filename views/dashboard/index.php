@@ -2,6 +2,17 @@
 /**
  * Main Dashboard View
  */
+$translatorBridgeLanguages = [
+    'english' => 'English',
+    'spanish' => 'Spanish',
+];
+
+$translatorLanguageOptions = $translatorBridgeLanguages;
+$translatorLanguageOptions[$currentLanguage] = getLanguageName($currentLanguage);
+
+$initialBridgeLanguage = array_key_exists($nativeLanguage, $translatorBridgeLanguages)
+    ? $nativeLanguage
+    : 'english';
 ?>
 <main class="flex min-h-screen flex-col items-center p-4 sm:p-6 lg:p-8">
     <div class="w-full max-w-6xl">
@@ -56,7 +67,7 @@
                             <div>
                                 <h3 class="font-bold text-white text-lg">Translator</h3>
                                 <p class="text-white/75 text-sm">
-                                    Bridge between <?= e(getLanguageName($nativeLanguage)) ?> and <?= e(getLanguageName($currentLanguage)) ?>
+                                    Practice <?= e(getLanguageName($currentLanguage)) ?> from English or Spanish
                                 </p>
                             </div>
                         </div>
@@ -70,8 +81,9 @@
                                 Input
                             </label>
                             <select id="sourceLanguageSelect" class="input !py-3" onchange="handleLanguageSelectionChange('source')">
-                                <option value="<?= e($nativeLanguage) ?>"><?= e(getLanguageName($nativeLanguage)) ?></option>
-                                <option value="<?= e($currentLanguage) ?>"><?= e(getLanguageName($currentLanguage)) ?></option>
+                                <?php foreach ($translatorLanguageOptions as $code => $name): ?>
+                                <option value="<?= e($code) ?>"><?= e($name) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <button
@@ -87,8 +99,9 @@
                                 Output
                             </label>
                             <select id="targetLanguageSelect" class="input !py-3" onchange="handleLanguageSelectionChange('target')">
-                                <option value="<?= e($nativeLanguage) ?>"><?= e(getLanguageName($nativeLanguage)) ?></option>
-                                <option value="<?= e($currentLanguage) ?>"><?= e(getLanguageName($currentLanguage)) ?></option>
+                                <?php foreach ($translatorLanguageOptions as $code => $name): ?>
+                                <option value="<?= e($code) ?>"><?= e($name) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
@@ -247,7 +260,9 @@
     let ephemeralMode = false;
     const currentLanguage = '<?= e($currentLanguage) ?>';
     const nativeLanguage = '<?= e($nativeLanguage) ?>';
-    let sourceLanguage = nativeLanguage;
+    const translatorBridgeLanguages = ['english', 'spanish'];
+    const translatorLanguageLabels = <?= json_encode($translatorLanguageOptions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    let sourceLanguage = '<?= e($initialBridgeLanguage) ?>';
     let targetLanguage = currentLanguage;
     let lastTargetLanguage = targetLanguage;
     
@@ -306,9 +321,7 @@
     }
 
     function getLanguageDisplayName(code) {
-        return code === nativeLanguage
-            ? '<?= e(getLanguageName($nativeLanguage)) ?>'
-            : '<?= e(getLanguageName($currentLanguage)) ?>';
+        return translatorLanguageLabels[code] || code;
     }
 
     function updateTranslatePlaceholder() {
@@ -333,9 +346,28 @@
 
         if (sourceLanguage === targetLanguage) {
             if (changedField === 'source') {
-                targetLanguage = sourceLanguage === nativeLanguage ? currentLanguage : nativeLanguage;
+                targetLanguage = sourceLanguage === currentLanguage ? '<?= e($initialBridgeLanguage) ?>' : currentLanguage;
             } else {
-                sourceLanguage = targetLanguage === nativeLanguage ? currentLanguage : nativeLanguage;
+                sourceLanguage = targetLanguage === currentLanguage ? '<?= e($initialBridgeLanguage) ?>' : currentLanguage;
+            }
+        }
+
+        const sourceIsBridge = translatorBridgeLanguages.includes(sourceLanguage);
+        const targetIsBridge = translatorBridgeLanguages.includes(targetLanguage);
+
+        if (sourceIsBridge && targetIsBridge) {
+            if (changedField === 'source') {
+                targetLanguage = currentLanguage;
+            } else {
+                sourceLanguage = currentLanguage;
+            }
+        }
+
+        if (sourceLanguage !== currentLanguage && targetLanguage !== currentLanguage) {
+            if (changedField === 'source') {
+                targetLanguage = currentLanguage;
+            } else {
+                sourceLanguage = currentLanguage;
             }
         }
 

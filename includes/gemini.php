@@ -78,7 +78,10 @@ class Gemini {
     public static function translate(string $text, string $sourceLanguage, string $targetLanguage): ?string {
         $prompt = "Translate the following text from {$sourceLanguage} to {$targetLanguage}. " .
                   "Only provide the translation, nothing else. " .
-                  "If the text is already in the target language, just return it as is.\n\n" .
+                  "If the text is already in the target language, just return it as is. " .
+                  "Preserve the speaker's tone and intent. " .
+                  "When the target language has formal/informal second-person forms (such as French tu/vous), " .
+                  "default to the informal form unless the user explicitly asks for formal language or the source clearly requires formality.\n\n" .
                   "Text to translate: {$text}";
         
         $result = self::request($prompt);
@@ -98,7 +101,8 @@ class Gemini {
                   "Answer the following question about the {$language} language in a clear, " .
                   "concise, and educational way. Include examples when helpful. " .
                   "Keep your response under 300 words. " .
-                  "Write the full answer in {$responseLanguage}, even if the question is asked in another language.\n\n" .
+                  "Write the full answer in {$responseLanguage}, even if the question is asked in another language. " .
+                  "When giving example sentences in {$language}, default to an informal everyday register unless the user explicitly asks for formal language.\n\n" .
                   "Question: {$question}";
         
         return self::request($prompt);
@@ -120,6 +124,7 @@ IMPORTANT: Respond with ONLY valid JSON, no other text. Use this exact structure
 
 Generate 8-10 phrases. Keep them simple and practical.
 Write the title and each "translation" value in {$translationLanguage}.
+Default to an informal everyday register in {$targetLanguage} when there is a formal/informal choice, unless the user explicitly asks for formality or the situation clearly requires it.
 PROMPT;
 
         $result = self::request($prompt);
@@ -167,14 +172,13 @@ PROMPT;
         string $text,
         string $direction,
         string $targetLanguage,
+        string $userLanguage,
         string $level,
         string $tone,
         string $fidelity,
         array $recentMessages = [],
         ?string $summary = null
     ): ?array {
-        $userLanguage = 'english';
-        
         if ($direction === 'me') {
             $fromLang = $userLanguage;
             $toLang = $targetLanguage;
@@ -231,6 +235,10 @@ Translation settings:
 - Level: {$levelInstruction}
 - Tone: {$toneInstruction}
 - Fidelity: {$fidelityInstruction}
+
+Register default:
+- If {$toLang} has formal and informal second-person forms, default to the informal everyday form unless formal language is explicitly requested or clearly required by context.
+- In French, prefer "tu" over "vous" by default unless formal language is explicitly requested or clearly required.
 
 IMPORTANT: Respond with ONLY valid JSON, no other text. Use this exact structure:
 {"translated_text":"the translation here","cultural_note":null}
